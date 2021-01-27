@@ -41,6 +41,7 @@ public class ShiroFilterMapFactory {
 		// 对所有用户认证
 		filterChainDefinitionMap.put("/static/**", "anon");
 		filterChainDefinitionMap.put("/login", "anon");
+		filterChainDefinitionMap.put("/register", "anon");
 		filterChainDefinitionMap.put("/logout", "logout");
 
 		//手机登录
@@ -55,7 +56,7 @@ public class ShiroFilterMapFactory {
 		filterChainDefinitionMap.put("/websocket", "anon");
 		// 前端
 		filterChainDefinitionMap.put("/", "anon");
-		filterChainDefinitionMap.put("/index", "anon");// 任务调度暂时放开
+		filterChainDefinitionMap.put("/index", "anon");
 
 		filterChainDefinitionMap.put("/quartz/**", "anon");
 

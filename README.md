@@ -1,8 +1,9 @@
 # springBoot-UI
 根据以往的layer,bootstrap,easyui,vue,html等进行整合,将功能进行封装
 
+代码都是通过大佬引用的模板进行添加的,非本人所写,所以要感谢世界给予的帮助,物与我皆无尽也
 
-1.bootstrap和easyui用的是jsp,通过jsp进行封装
+1.bootstrap,layui和easyui用的是thymeleaf,通过thymeleaf进行封装
 
 2.bootstrap和easyui模块参考了shiro的使用,中间件引用了redis.统一了curd等方法,弹窗样式用的是layer,
 里面也会参考使用bootstrap和easyui等弹窗样式.动态添加点击效果.参考以前的流程模板,将流程引擎进行封装.

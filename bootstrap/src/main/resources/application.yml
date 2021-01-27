@@ -10,6 +10,16 @@ spring:
     multipart:
       max-file-size: 512MB
       max-request-size: 512MB
+  mvc:   #静态文件
+    static-path-pattern: /static/**
+  thymeleaf:
+    model: HTML5
+    prefix: classpath:/templates/
+    suffix: .html
+    #指定编码
+    encoding: utf-8
+    #禁用缓存 默认false
+    cache: false
   datasource:
     username: root
     password: 123456

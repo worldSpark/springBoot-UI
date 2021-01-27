@@ -15,15 +15,34 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class LoginController {
 
-    @RequestMapping(value = "/index", method = RequestMethod.GET)
-    public String index(Model model) {
-        return "/index";
+    /**
+     * 注册
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/register", method = RequestMethod.GET)
+    public String register(Model model) {
+        return "register";
     }
 
-
+    /**
+     * 登录
+     * @param model
+     * @return
+     */
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login(Model model) {
         return "/login";
+    }
+
+    /**
+     * 首页
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/index", method = RequestMethod.GET)
+    public String index(Model model) {
+        return "/index";
     }
 
 }
