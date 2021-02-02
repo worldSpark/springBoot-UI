@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.modules.book.mapper.AppleBookMapper" >
+  <resultMap id="BaseResultMap" type="com.example.demo.modules.book.model.AppleBook" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="book_code" property="bookCode" jdbcType="VARCHAR" />
+    <result column="book_name" property="bookName" jdbcType="VARCHAR" />
+    <result column="author" property="author" jdbcType="VARCHAR" />
+    <result column="publish" property="publish" jdbcType="VARCHAR" />
+    <result column="book_type" property="bookType" jdbcType="VARCHAR" />
+    <result column="language_classification" property="languageClassification" jdbcType="VARCHAR" />
+    <result column="industry" property="industry" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="publish_time" property="publishTime" jdbcType="TIMESTAMP" />
+    <result column="ISBN" property="isbn" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="VARCHAR" />
+    <result column="img" property="img" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="LONGVARBINARY" />
+    <result column="catalog" property="catalog" jdbcType="LONGVARBINARY" />
+  </resultMap>
+
+  <select id="selectByBookName" resultMap="BaseResultMap" parameterType="string">
+    SELECT *
+    FROM apple_book
+    WHERE book_name=#{name}
+  </select>
+  
+  
+
+</mapper>

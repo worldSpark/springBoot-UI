@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.modules.book.mapper.AppleBorrowMapper" >
+  <resultMap id="BaseResultMap" type="com.example.demo.modules.book.model.AppleBorrow" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="book_id" property="bookId" jdbcType="INTEGER" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="borrow_time" property="borrowTime" jdbcType="TIMESTAMP" />
+    <result column="return_time" property="returnTime" jdbcType="TIMESTAMP" />
+    <result column="depart_return_time" property="departReturnTime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="operator_time" property="operatorTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <resultMap id="AppleBorrowBookVo" type="com.example.demo.modules.book.vo.AppleBorrowBookVo">
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="book_id" property="bookId" jdbcType="INTEGER" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="borrow_time" property="borrowTime" jdbcType="TIMESTAMP" />
+    <result column="return_time" property="returnTime" jdbcType="TIMESTAMP" />
+    <result column="depart_return_time" property="departReturnTime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="operator_time" property="operatorTime" jdbcType="TIMESTAMP" />
+    <association property="book" column="book_id" select="com.example.demo.modules.book.mapper.AppleBookMapper.selectByPrimaryKey"></association>
+  </resultMap>
+
+
+  <select id="selectBorrowByUser" resultMap="AppleBorrowBookVo">
+    SELECT
+    apple_borrow.*
+    from apple_borrow
+    JOIN sys_user on apple_borrow.user_id=sys_user.id
+    JOIN apple_book on apple_borrow.book_id=apple_book.id
+    where apple_borrow.return_time is null AND sys_user.username=#{username}
+  </select>
+
+  <select id="selectBorrowHistoryList" resultMap="BaseResultMap">
+    SELECT
+    apple_borrow.*
+    from apple_borrow
+    JOIN apple_book on apple_borrow.book_id=apple_book.id
+    where apple_borrow.book_id=#{bookId} AND apple_borrow.user_id=#{userId}
+  </select>
+
+  <select id="selectBorrowHistoryListByUser" resultMap="BaseResultMap">
+    SELECT
+    apple_borrow.*
+    from apple_borrow
+    JOIN apple_book on apple_borrow.book_id=apple_book.id
+    where apple_borrow.user_id=#{userId}
+    ORDER BY apple_borrow.operator_time
+  </select>
+
+
+
+
+  <update id="updateAppleBorrowByPrimaryKeySelective" parameterType="com.example.demo.modules.book.model.AppleBorrow">
+    UPDATE apple_borrow
+    <set>
+      <if test="bookId!=null">
+        book_Id=#{bookId},
+      </if>
+      <if test="userId!=null">
+        user_Id=#{userId},
+      </if>
+      <if test="borrowTime!=null">
+        borrow_Time=#{borrowTime},
+      </if>
+      <if test="returnTime!=null">
+        return_Time=#{returnTime},
+      </if>
+      <if test="departReturnTime!=null">
+        depart_Return_Time=#{departReturnTime},
+      </if>
+      <if test="operator!=null">
+        operator=#{operator},
+      </if>
+      <if test="operatorTime!=null">
+        operator_Time=#{operatorTime},
+      </if>
+    </set>
+    <where>
+      id=#{id}
+    </where>
+  </update>
+
+  <insert id="insertAppleBorrow" parameterType="com.example.demo.modules.book.model.AppleBorrow">
+    INSERT INTO  apple_borrow
+    (id,book_id,user_id,borrow_time,return_time,depart_return_time,operator,operator_time)
+    VALUES
+    (#{id},#{bookId},#{userId},#{borrowTime},#{returnTime},#{departReturnTime},#{operator},#{operatorTime})
+  </insert>
+</mapper>
