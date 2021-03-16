@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fc.mapper.auto.SysCityMapper">
-  <resultMap id="BaseResultMap" type="com.fc.model.auto.SysCity">
+<mapper namespace="com.fc.v2.mapper.auto.SysCityMapper">
+  <resultMap id="BaseResultMap" type="com.fc.v2.model.auto.SysCity">
     <constructor>
       <idArg column="id" javaType="java.lang.Integer" jdbcType="INTEGER" />
       <arg column="city_code" javaType="java.lang.String" jdbcType="VARCHAR" />
@@ -76,10 +76,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, city_code, city_name, short_name, province_code, lng, lat, sort, gmt_create,
+    id, city_code, city_name, short_name, province_code, lng, lat, sort, gmt_create, 
     gmt_modified, memo, data_state
   </sql>
-  <select id="selectByExample" parameterType="com.fc.model.auto.SysCityExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fc.v2.model.auto.SysCityExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -94,7 +94,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select
+    select 
     <include refid="Base_Column_List" />
     from t_sys_city
     where id = #{id,jdbcType=INTEGER}
@@ -103,25 +103,25 @@
     delete from t_sys_city
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fc.model.auto.SysCityExample">
+  <delete id="deleteByExample" parameterType="com.fc.v2.model.auto.SysCityExample">
     delete from t_sys_city
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.fc.model.auto.SysCity">
-    insert into t_sys_city (id, city_code, city_name,
-      short_name, province_code, lng,
-      lat, sort, gmt_create,
+  <insert id="insert" parameterType="com.fc.v2.model.auto.SysCity">
+    insert into t_sys_city (id, city_code, city_name, 
+      short_name, province_code, lng, 
+      lat, sort, gmt_create, 
       gmt_modified, memo, data_state
       )
-    values (#{id,jdbcType=INTEGER}, #{cityCode,jdbcType=VARCHAR}, #{cityName,jdbcType=VARCHAR},
-      #{shortName,jdbcType=VARCHAR}, #{provinceCode,jdbcType=VARCHAR}, #{lng,jdbcType=VARCHAR},
-      #{lat,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{gmtCreate,jdbcType=TIMESTAMP},
+    values (#{id,jdbcType=INTEGER}, #{cityCode,jdbcType=VARCHAR}, #{cityName,jdbcType=VARCHAR}, 
+      #{shortName,jdbcType=VARCHAR}, #{provinceCode,jdbcType=VARCHAR}, #{lng,jdbcType=VARCHAR}, 
+      #{lat,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{gmtCreate,jdbcType=TIMESTAMP}, 
       #{gmtModified,jdbcType=TIMESTAMP}, #{memo,jdbcType=VARCHAR}, #{dataState,jdbcType=INTEGER}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.fc.model.auto.SysCity">
+  <insert id="insertSelective" parameterType="com.fc.v2.model.auto.SysCity">
     insert into t_sys_city
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -200,7 +200,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.fc.model.auto.SysCityExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.fc.v2.model.auto.SysCityExample" resultType="java.lang.Long">
     select count(*) from t_sys_city
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
@@ -268,7 +268,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.fc.model.auto.SysCity">
+  <update id="updateByPrimaryKeySelective" parameterType="com.fc.v2.model.auto.SysCity">
     update t_sys_city
     <set>
       <if test="cityCode != null">
@@ -307,7 +307,7 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.fc.model.auto.SysCity">
+  <update id="updateByPrimaryKey" parameterType="com.fc.v2.model.auto.SysCity">
     update t_sys_city
     set city_code = #{cityCode,jdbcType=VARCHAR},
       city_name = #{cityName,jdbcType=VARCHAR},

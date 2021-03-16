@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fc.mapper.auto.SysStreetMapper">
-  <resultMap id="BaseResultMap" type="com.fc.model.auto.SysStreet">
+<mapper namespace="com.fc.v2.mapper.auto.SysStreetMapper">
+  <resultMap id="BaseResultMap" type="com.fc.v2.model.auto.SysStreet">
     <result column="id" jdbcType="INTEGER" property="id" />
     <result column="street_code" jdbcType="VARCHAR" property="streetCode" />
     <result column="area_code" jdbcType="VARCHAR" property="areaCode" />
@@ -87,7 +87,7 @@
        	  	      	memo,
        	  	    	  	data_state
        	</sql>
-  <select id="selectByExample" parameterType="com.fc.model.auto.SysStreetExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fc.v2.model.auto.SysStreetExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -102,7 +102,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select
+    select 
     <include refid="Base_Column_List" />
     from t_sys_street
     where id = #{id,jdbcType=INTEGER}
@@ -112,14 +112,14 @@
     delete from t_sys_street
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fc.model.auto.SysStreetExample">
+  <delete id="deleteByExample" parameterType="com.fc.v2.model.auto.SysStreetExample">
     delete from t_sys_street
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-
-  <insert id="insert" parameterType="com.fc.model.auto.SysStreet">
+  
+  <insert id="insert" parameterType="com.fc.v2.model.auto.SysStreet">
     insert into t_sys_street (
       	  	       id,
        	  	       street_code,
@@ -149,70 +149,70 @@
        	  	    	  #{dataState,jdbcType=INTEGER}
        	    )
   </insert>
-
-  <insert id="insertSelective" parameterType="com.fc.model.auto.SysStreet">
+  
+  <insert id="insertSelective" parameterType="com.fc.v2.model.auto.SysStreet">
     insert into t_sys_street
     <trim prefix="(" suffix=")" suffixOverrides=",">
-
+          
       <if test="id != null">
         id,
       </if>
-
-
+      
+         
       <if test="streetCode != null">
         street_code,
       </if>
-
-
+      
+         
       <if test="areaCode != null">
         area_code,
       </if>
-
-
+      
+         
       <if test="streetName != null">
         street_name,
       </if>
-
-
+      
+         
       <if test="shortName != null">
         short_name,
       </if>
-
-
+      
+         
       <if test="lng != null">
         lng,
       </if>
-
-
+      
+         
       <if test="lat != null">
         lat,
       </if>
-
-
+      
+         
       <if test="sort != null">
         sort,
       </if>
-
-
+      
+         
       <if test="gmtCreate != null">
         gmt_create,
       </if>
-
-
+      
+         
       <if test="gmtModified != null">
         gmt_modified,
       </if>
-
-
+      
+         
       <if test="memo != null">
         memo,
       </if>
-
-
+      
+         
       <if test="dataState != null">
         data_state,
       </if>
-
+      
          </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
           <if test="id != null">
@@ -253,14 +253,14 @@
       </if>
         </trim>
   </insert>
-
-  <select id="countByExample" parameterType="com.fc.model.auto.SysStreetExample" resultType="java.lang.Long">
+  
+  <select id="countByExample" parameterType="com.fc.v2.model.auto.SysStreetExample" resultType="java.lang.Long">
     select count(*) from t_sys_street
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-
+  
   <update id="updateByExampleSelective" parameterType="map">
     update t_sys_street
     <set>
@@ -300,14 +300,14 @@
           <if test="record.dataState != null">
         data_state = #{record.dataState,jdbcType=INTEGER},
       </if>
-
+         
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
+  
+  
   <update id="updateByExample" parameterType="map">
     update t_sys_street
     set
@@ -327,9 +327,9 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
-      <update id="updateByPrimaryKeySelective" parameterType="com.fc.model.auto.SysStreet">
+  
+  
+      <update id="updateByPrimaryKeySelective" parameterType="com.fc.v2.model.auto.SysStreet">
     update t_sys_street
     <set>
                           <if test="streetCode != null">
@@ -366,16 +366,16 @@
         data_state = #{dataState,jdbcType=INTEGER},
       </if>
               </set>
-    where
+    where 
             id = #{id,jdbcType=INTEGER}
-
+                                                                                                  
   </update>
 
+      	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	
 
-
-  <update id="updateByPrimaryKey" parameterType="com.fc.model.auto.SysStreet">
+  <update id="updateByPrimaryKey" parameterType="com.fc.v2.model.auto.SysStreet">
     update t_sys_street
-    set
+    set 
              	        	    	 			street_code = #{streetCode,jdbcType=VARCHAR},
 		     	        	    	 			area_code = #{areaCode,jdbcType=VARCHAR},
 		     	        	    	 			street_name = #{streetName,jdbcType=VARCHAR},
@@ -387,10 +387,10 @@
 		     	        	    	 			gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
 		     	        	    	 			memo = #{memo,jdbcType=VARCHAR},
 		     	        	    	 			data_state = #{dataState,jdbcType=INTEGER}
-		     	        where
+		     	        where 
             id = #{id,jdbcType=INTEGER}
-
+                                                                                                    
   </update>
-
-
+  
+                                                                
 </mapper>

@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.wangjiangfei</groupId>
-    <artifactId>jxc</artifactId>
+    <artifactId>easyui</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>jxc</name>
+    <name>easyui</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>

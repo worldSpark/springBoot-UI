@@ -5,10 +5,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>easyui</module>
-        <module>vue-admin</module>
+        <module>admin</module>
         <module>layui</module>
-        <module>btl-bootstrap</module>
-        <module>ftl-bootstrap</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

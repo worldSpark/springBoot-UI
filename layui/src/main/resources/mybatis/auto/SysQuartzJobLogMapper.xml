@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fc.mapper.auto.SysQuartzJobLogMapper">
-  <resultMap id="BaseResultMap" type="com.fc.model.auto.SysQuartzJobLog">
+<mapper namespace="com.fc.v2.mapper.auto.SysQuartzJobLogMapper">
+  <resultMap id="BaseResultMap" type="com.fc.v2.model.auto.SysQuartzJobLog">
     <result column="id" jdbcType="VARCHAR" property="id" />
     <result column="job_name" jdbcType="VARCHAR" property="jobName" />
     <result column="job_group" jdbcType="VARCHAR" property="jobGroup" />
@@ -81,7 +81,7 @@
        	  	      	start_time,
        	  	    	  	end_time
        	</sql>
-  <select id="selectByExample" parameterType="com.fc.model.auto.SysQuartzJobLogExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fc.v2.model.auto.SysQuartzJobLogExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -96,7 +96,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select
+    select 
     <include refid="Base_Column_List" />
     from t_sys_quartz_job_log
     where id = #{id,jdbcType=VARCHAR}
@@ -106,14 +106,14 @@
     delete from t_sys_quartz_job_log
     where id = #{id,jdbcType=VARCHAR}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fc.model.auto.SysQuartzJobLogExample">
+  <delete id="deleteByExample" parameterType="com.fc.v2.model.auto.SysQuartzJobLogExample">
     delete from t_sys_quartz_job_log
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-
-  <insert id="insert" parameterType="com.fc.model.auto.SysQuartzJobLog">
+  
+  <insert id="insert" parameterType="com.fc.v2.model.auto.SysQuartzJobLog">
     insert into t_sys_quartz_job_log (
       	  	       id,
        	  	       job_name,
@@ -137,55 +137,55 @@
        	  	    	  #{endTime,jdbcType=TIMESTAMP}
        	    )
   </insert>
-
-  <insert id="insertSelective" parameterType="com.fc.model.auto.SysQuartzJobLog">
+  
+  <insert id="insertSelective" parameterType="com.fc.v2.model.auto.SysQuartzJobLog">
     insert into t_sys_quartz_job_log
     <trim prefix="(" suffix=")" suffixOverrides=",">
-
+          
       <if test="id != null">
         id,
       </if>
-
-
+      
+         
       <if test="jobName != null">
         job_name,
       </if>
-
-
+      
+         
       <if test="jobGroup != null">
         job_group,
       </if>
-
-
+      
+         
       <if test="invokeTarget != null">
         invoke_target,
       </if>
-
-
+      
+         
       <if test="jobMessage != null">
         job_message,
       </if>
-
-
+      
+         
       <if test="status != null">
         status,
       </if>
-
-
+      
+         
       <if test="exceptionInfo != null">
         exception_info,
       </if>
-
-
+      
+         
       <if test="startTime != null">
         start_time,
       </if>
-
-
+      
+         
       <if test="endTime != null">
         end_time,
       </if>
-
+      
          </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
           <if test="id != null">
@@ -217,14 +217,14 @@
       </if>
         </trim>
   </insert>
-
-  <select id="countByExample" parameterType="com.fc.model.auto.SysQuartzJobLogExample" resultType="java.lang.Long">
+  
+  <select id="countByExample" parameterType="com.fc.v2.model.auto.SysQuartzJobLogExample" resultType="java.lang.Long">
     select count(*) from t_sys_quartz_job_log
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-
+  
   <update id="updateByExampleSelective" parameterType="map">
     update t_sys_quartz_job_log
     <set>
@@ -255,14 +255,14 @@
           <if test="record.endTime != null">
         end_time = #{record.endTime,jdbcType=TIMESTAMP},
       </if>
-
+         
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
+  
+  
   <update id="updateByExample" parameterType="map">
     update t_sys_quartz_job_log
     set
@@ -279,9 +279,9 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
-      <update id="updateByPrimaryKeySelective" parameterType="com.fc.model.auto.SysQuartzJobLog">
+  
+  
+      <update id="updateByPrimaryKeySelective" parameterType="com.fc.v2.model.auto.SysQuartzJobLog">
     update t_sys_quartz_job_log
     <set>
                           <if test="jobName != null">
@@ -309,16 +309,16 @@
         end_time = #{endTime,jdbcType=TIMESTAMP},
       </if>
               </set>
-    where
+    where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                          
   </update>
 
+      	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	
 
-
-  <update id="updateByPrimaryKey" parameterType="com.fc.model.auto.SysQuartzJobLog">
+  <update id="updateByPrimaryKey" parameterType="com.fc.v2.model.auto.SysQuartzJobLog">
     update t_sys_quartz_job_log
-    set
+    set 
              	        	    	 			job_name = #{jobName,jdbcType=VARCHAR},
 		     	        	    	 			job_group = #{jobGroup,jdbcType=VARCHAR},
 		     	        	    	 			invoke_target = #{invokeTarget,jdbcType=VARCHAR},
@@ -327,10 +327,10 @@
 		     	        	    	 			exception_info = #{exceptionInfo,jdbcType=VARCHAR},
 		     	        	    	 			start_time = #{startTime,jdbcType=TIMESTAMP},
 		     	        	    	 			end_time = #{endTime,jdbcType=TIMESTAMP}
-		     	        where
+		     	        where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                            
   </update>
-
-
+  
+                                                 
 </mapper>

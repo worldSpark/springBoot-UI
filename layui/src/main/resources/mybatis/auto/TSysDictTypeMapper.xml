@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fc.mapper.auto.TSysDictTypeMapper">
-  <resultMap id="BaseResultMap" type="com.fc.model.auto.TSysDictType">
+<mapper namespace="com.fc.v2.mapper.auto.TSysDictTypeMapper">
+  <resultMap id="BaseResultMap" type="com.fc.v2.model.auto.TSysDictType">
     <result column="id" jdbcType="VARCHAR" property="id" />
     <result column="dict_name" jdbcType="VARCHAR" property="dictName" />
     <result column="dict_type" jdbcType="VARCHAR" property="dictType" />
@@ -81,7 +81,7 @@
        	  	      	update_time,
        	  	    	  	remark
        	</sql>
-  <select id="selectByExample" parameterType="com.fc.model.auto.TSysDictTypeExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fc.v2.model.auto.TSysDictTypeExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -96,7 +96,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select
+    select 
     <include refid="Base_Column_List" />
     from t_sys_dict_type
     where id = #{id,jdbcType=VARCHAR}
@@ -106,14 +106,14 @@
     delete from t_sys_dict_type
     where id = #{id,jdbcType=VARCHAR}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fc.model.auto.TSysDictTypeExample">
+  <delete id="deleteByExample" parameterType="com.fc.v2.model.auto.TSysDictTypeExample">
     delete from t_sys_dict_type
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-
-  <insert id="insert" parameterType="com.fc.model.auto.TSysDictType">
+  
+  <insert id="insert" parameterType="com.fc.v2.model.auto.TSysDictType">
     insert into t_sys_dict_type (
       	  	       id,
        	  	       dict_name,
@@ -137,55 +137,55 @@
        	  	    	  #{remark,jdbcType=VARCHAR}
        	    )
   </insert>
-
-  <insert id="insertSelective" parameterType="com.fc.model.auto.TSysDictType">
+  
+  <insert id="insertSelective" parameterType="com.fc.v2.model.auto.TSysDictType">
     insert into t_sys_dict_type
     <trim prefix="(" suffix=")" suffixOverrides=",">
-
+          
       <if test="id != null">
         id,
       </if>
-
-
+      
+         
       <if test="dictName != null">
         dict_name,
       </if>
-
-
+      
+         
       <if test="dictType != null">
         dict_type,
       </if>
-
-
+      
+         
       <if test="status != null">
         status,
       </if>
-
-
+      
+         
       <if test="createBy != null">
         create_by,
       </if>
-
-
+      
+         
       <if test="createTime != null">
         create_time,
       </if>
-
-
+      
+         
       <if test="updateBy != null">
         update_by,
       </if>
-
-
+      
+         
       <if test="updateTime != null">
         update_time,
       </if>
-
-
+      
+         
       <if test="remark != null">
         remark,
       </if>
-
+      
          </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
           <if test="id != null">
@@ -217,14 +217,14 @@
       </if>
         </trim>
   </insert>
-
-  <select id="countByExample" parameterType="com.fc.model.auto.TSysDictTypeExample" resultType="java.lang.Long">
+  
+  <select id="countByExample" parameterType="com.fc.v2.model.auto.TSysDictTypeExample" resultType="java.lang.Long">
     select count(*) from t_sys_dict_type
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-
+  
   <update id="updateByExampleSelective" parameterType="map">
     update t_sys_dict_type
     <set>
@@ -255,14 +255,14 @@
           <if test="record.remark != null">
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
-
+         
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
+  
+  
   <update id="updateByExample" parameterType="map">
     update t_sys_dict_type
     set
@@ -279,9 +279,9 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
-      <update id="updateByPrimaryKeySelective" parameterType="com.fc.model.auto.TSysDictType">
+  
+  
+      <update id="updateByPrimaryKeySelective" parameterType="com.fc.v2.model.auto.TSysDictType">
     update t_sys_dict_type
     <set>
                           <if test="dictName != null">
@@ -309,16 +309,16 @@
         remark = #{remark,jdbcType=VARCHAR},
       </if>
               </set>
-    where
+    where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                          
   </update>
 
+      	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	
 
-
-  <update id="updateByPrimaryKey" parameterType="com.fc.model.auto.TSysDictType">
+  <update id="updateByPrimaryKey" parameterType="com.fc.v2.model.auto.TSysDictType">
     update t_sys_dict_type
-    set
+    set 
              	        	    	 			dict_name = #{dictName,jdbcType=VARCHAR},
 		     	        	    	 			dict_type = #{dictType,jdbcType=VARCHAR},
 		     	        	    	 			status = #{status,jdbcType=CHAR},
@@ -327,10 +327,10 @@
 		     	        	    	 			update_by = #{updateBy,jdbcType=VARCHAR},
 		     	        	    	 			update_time = #{updateTime,jdbcType=TIMESTAMP},
 		     	        	    	 			remark = #{remark,jdbcType=VARCHAR}
-		     	        where
+		     	        where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                            
   </update>
-
-
+  
+                                                 
 </mapper>

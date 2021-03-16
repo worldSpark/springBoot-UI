@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.fc.mapper.auto.TSysDictDataMapper">
-  <resultMap id="BaseResultMap" type="com.fc.model.auto.TSysDictData">
+<mapper namespace="com.fc.v2.mapper.auto.TSysDictDataMapper">
+  <resultMap id="BaseResultMap" type="com.fc.v2.model.auto.TSysDictData">
     <result column="id" jdbcType="VARCHAR" property="id" />
     <result column="dict_sort" jdbcType="INTEGER" property="dictSort" />
     <result column="dict_label" jdbcType="VARCHAR" property="dictLabel" />
@@ -91,7 +91,7 @@
        	  	      	update_time,
        	  	    	  	remark
        	</sql>
-  <select id="selectByExample" parameterType="com.fc.model.auto.TSysDictDataExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.fc.v2.model.auto.TSysDictDataExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -106,7 +106,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select
+    select 
     <include refid="Base_Column_List" />
     from t_sys_dict_data
     where id = #{id,jdbcType=VARCHAR}
@@ -116,14 +116,14 @@
     delete from t_sys_dict_data
     where id = #{id,jdbcType=VARCHAR}
   </delete>
-  <delete id="deleteByExample" parameterType="com.fc.model.auto.TSysDictDataExample">
+  <delete id="deleteByExample" parameterType="com.fc.v2.model.auto.TSysDictDataExample">
     delete from t_sys_dict_data
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-
-  <insert id="insert" parameterType="com.fc.model.auto.TSysDictData">
+  
+  <insert id="insert" parameterType="com.fc.v2.model.auto.TSysDictData">
     insert into t_sys_dict_data (
       	  	       id,
        	  	       dict_sort,
@@ -157,80 +157,80 @@
        	  	    	  #{remark,jdbcType=VARCHAR}
        	    )
   </insert>
-
-  <insert id="insertSelective" parameterType="com.fc.model.auto.TSysDictData">
+  
+  <insert id="insertSelective" parameterType="com.fc.v2.model.auto.TSysDictData">
     insert into t_sys_dict_data
     <trim prefix="(" suffix=")" suffixOverrides=",">
-
+          
       <if test="id != null">
         id,
       </if>
-
-
+      
+         
       <if test="dictSort != null">
         dict_sort,
       </if>
-
-
+      
+         
       <if test="dictLabel != null">
         dict_label,
       </if>
-
-
+      
+         
       <if test="dictValue != null">
         dict_value,
       </if>
-
-
+      
+         
       <if test="dictType != null">
         dict_type,
       </if>
-
-
+      
+         
       <if test="cssClass != null">
         css_class,
       </if>
-
-
+      
+         
       <if test="listClass != null">
         list_class,
       </if>
-
-
+      
+         
       <if test="isDefault != null">
         is_default,
       </if>
-
-
+      
+         
       <if test="status != null">
         status,
       </if>
-
-
+      
+         
       <if test="createBy != null">
         create_by,
       </if>
-
-
+      
+         
       <if test="createTime != null">
         create_time,
       </if>
-
-
+      
+         
       <if test="updateBy != null">
         update_by,
       </if>
-
-
+      
+         
       <if test="updateTime != null">
         update_time,
       </if>
-
-
+      
+         
       <if test="remark != null">
         remark,
       </if>
-
+      
          </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
           <if test="id != null">
@@ -277,14 +277,14 @@
       </if>
         </trim>
   </insert>
-
-  <select id="countByExample" parameterType="com.fc.model.auto.TSysDictDataExample" resultType="java.lang.Long">
+  
+  <select id="countByExample" parameterType="com.fc.v2.model.auto.TSysDictDataExample" resultType="java.lang.Long">
     select count(*) from t_sys_dict_data
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-
+  
   <update id="updateByExampleSelective" parameterType="map">
     update t_sys_dict_data
     <set>
@@ -330,14 +330,14 @@
           <if test="record.remark != null">
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
-
+         
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
+  
+  
   <update id="updateByExample" parameterType="map">
     update t_sys_dict_data
     set
@@ -359,12 +359,12 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-
-
-      <update id="updateByPrimaryKeySelective" parameterType="com.fc.model.auto.TSysDictData">
+  
+  
+      <update id="updateByPrimaryKeySelective" parameterType="com.fc.v2.model.auto.TSysDictData">
     update t_sys_dict_data
     <set>
-
+                         
                       <if test="dictSort != null">
         dict_sort = #{dictSort,jdbcType=INTEGER},
       </if>
@@ -405,16 +405,16 @@
         remark = #{remark,jdbcType=VARCHAR},
       </if>
               </set>
-    where
+    where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                                                                          
   </update>
 
+      	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	   	      	
 
-
-  <update id="updateByPrimaryKey" parameterType="com.fc.model.auto.TSysDictData">
+  <update id="updateByPrimaryKey" parameterType="com.fc.v2.model.auto.TSysDictData">
     update t_sys_dict_data
-    set
+    set 
 		     	        	    	 			dict_sort = #{dictSort,jdbcType=INTEGER},
 		     	        	    	 			dict_label = #{dictLabel,jdbcType=VARCHAR},
 		     	        	    	 			dict_value = #{dictValue,jdbcType=VARCHAR},
@@ -428,10 +428,10 @@
 		     	        	    	 			update_by = #{updateBy,jdbcType=VARCHAR},
 		     	        	    	 			update_time = #{updateTime,jdbcType=TIMESTAMP},
 		     	        	    	 			remark = #{remark,jdbcType=VARCHAR}
-		     	        where
+		     	        where 
             id = #{id,jdbcType=VARCHAR}
-
+                                                                                                                            
   </update>
-
-
+  
+                                                                               
 </mapper>
