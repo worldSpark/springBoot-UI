@@ -1,5 +1,7 @@
 package com.system.service;
 
+import com.common.core.domain.TreeSelect;
+import com.common.core.domain.entity.SysMenu;
 import com.common.core.domain.entity.SysUser;
 
 import java.util.List;
@@ -165,4 +167,28 @@ public interface ISysUserService
      * @return 结果
      */
     public String importUser(List<SysUser> userList, Boolean isUpdateSupport, String operName);
+
+    /**
+     * 构建前端所需要下拉树结构
+     *
+     * @param users 用户列表
+     * @return 下拉树结构列表
+     */
+    public List<TreeSelect> buildUserTreeSelect(List<SysUser> users);
+
+    /**
+     * 构建前端所需要树结构
+     *
+     * @param users 用户列表
+     * @return 树结构列表
+     */
+    public List<SysUser> buildUserTree(List<SysUser> users);
+
+    /**
+     * 根据投票id查询用户树信息
+     *
+     * @param voteId 投票ID
+     * @return 选中用户列表
+     */
+    public List<Integer> selectUserListByVoteId(Long voteId);
 }

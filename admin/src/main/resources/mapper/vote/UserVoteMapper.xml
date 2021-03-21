@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vote.mapper.UserVoteMapper">
+
+    <resultMap type="UserVote" id="UserVoteResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="voteId"    column="vote_id"    />
+        <result property="voteOptionId"    column="vote_option_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectUserVoteVo">
+        select id, user_id, vote_id, vote_option_id, del_flag, create_by, create_time, update_by, update_time from user_vote
+    </sql>
+
+    <select id="selectUserVoteList" parameterType="UserVote" resultMap="UserVoteResult">
+        <include refid="selectUserVoteVo"/>
+        <where>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="voteId != null "> and vote_id = #{voteId}</if>
+            <if test="voteOptionId != null "> and vote_option_id = #{voteOptionId}</if>
+        </where>
+    </select>
+
+    <select id="selectUserVoteById" parameterType="Long" resultMap="UserVoteResult">
+        <include refid="selectUserVoteVo"/>
+        where id = #{id}
+    </select>
+    <select id="getUserVoteList" resultMap="UserVoteResult">
+        <include refid="selectUserVoteVo"/>
+    </select>
+    <select id="selectUserListVoteById" resultType="com.common.core.domain.entity.SysUser">
+        select su.user_name userName,su.nick_name nickName,su.sex,su.email,uv.content from sys_user su inner JOIN user_vote uv on su.user_id=uv.user_id and uv.vote_id=#{voteId} and uv.vote_option_id =#{optionId}
+    </select>
+    <select id="getUserVoteTotal" resultType="java.lang.Integer">
+        select count(0) from user_vote where user_id=#{userId} and vote_id =#{voteId}
+    </select>
+
+    <insert id="insertUserVote" parameterType="UserVote" useGeneratedKeys="true" >
+        insert into user_vote
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="voteId != null">vote_id,</if>
+            <if test="voteOptionId != null">vote_option_id,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="voteId != null">#{voteId},</if>
+            <if test="voteOptionId != null">#{voteOptionId},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateUserVote" parameterType="UserVote">
+        update user_vote
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="voteId != null">vote_id = #{voteId},</if>
+            <if test="voteOptionId != null">vote_option_id = #{voteOptionId},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserVoteById" parameterType="Long">
+        delete from user_vote where id = #{id}
+    </delete>
+
+    <delete id="deleteUserVoteByIds" parameterType="String">
+        delete from user_vote where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

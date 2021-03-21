@@ -28,6 +28,8 @@ public interface ISysRoleService
      */
     public Set<String> selectRolePermissionByUserId(Long userId);
 
+    public List<SysRole> selectRoleByUserId(Long userId);
+
     /**
      * 查询所有角色
      * 

@@ -2,6 +2,8 @@ package com.web.controller.system;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.common.core.domain.entity.SysMenu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -201,5 +203,28 @@ public class SysUserController extends BaseController
         userService.checkUserAllowed(user);
         user.setUpdateBy(SecurityUtils.getUsername());
         return toAjax(userService.updateUserStatus(user));
+    }
+
+    /**
+     * 获取菜单下拉树列表
+     */
+    @GetMapping("/treeselect")
+    public AjaxResult treeselect(SysUser user)
+    {
+        List<SysUser> users = userService.selectUserList(user);
+        return AjaxResult.success(userService.buildUserTreeSelect(users));
+    }
+
+    /**
+     * 加载对应用户投票列表树
+     */
+    @GetMapping(value = "/voteUserTreeselect/{voteId}")
+    public AjaxResult voteUserTreeselect(@PathVariable("voteId") Long voteId)
+    {
+        List<SysUser> users = userService.selectUserList(new SysUser());
+        AjaxResult ajax = AjaxResult.success();
+        ajax.put("checkedKeys", userService.selectUserListByVoteId(voteId));
+        ajax.put("users", userService.buildUserTreeSelect(users));
+        return ajax;
     }
 }

@@ -1,5 +1,7 @@
 package com.system.service.impl;
 
+import com.common.core.domain.TreeSelect;
+import com.common.core.domain.entity.SysMenu;
 import com.common.exception.CustomException;
 import com.common.utils.SecurityUtils;
 import com.common.utils.StringUtils;
@@ -14,6 +16,10 @@ import com.system.mapper.*;
 import com.system.mapper.*;
 import com.system.service.ISysConfigService;
 import com.system.service.ISysUserService;
+import com.vote.domain.Vote;
+import com.vote.domain.VotePermission;
+import com.vote.mapper.VoteMapper;
+import com.vote.mapper.VotePermissionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户 业务层处理
@@ -50,6 +58,9 @@ public class SysUserServiceImpl implements ISysUserService
 
     @Autowired
     private ISysConfigService configService;
+
+    @Autowired
+    private VotePermissionMapper votePermissionMapper;
 
     /**
      * 根据条件分页查询用户列表
@@ -457,5 +468,52 @@ public class SysUserServiceImpl implements ISysUserService
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
+    }
+
+    /**
+     * 构建前端所需要下拉树结构
+     *
+     * @param users 用户列表
+     * @return 下拉树结构列表
+     */
+    @Override
+    public List<TreeSelect> buildUserTreeSelect(List<SysUser> users) {
+        List<SysUser> userTrees = buildUserTree(users);
+        return userTrees.stream().map(TreeSelect::new).collect(Collectors.toList());
+    }
+
+    /**
+     * 构建前端所需要树结构
+     *
+     * @param users 用户列表
+     * @return 树结构列表
+     */
+    @Override
+    public List<SysUser> buildUserTree(List<SysUser> users)
+    {
+        List<SysUser> returnList = new ArrayList<SysUser>();
+        List<Long> tempList = new ArrayList<Long>();
+        for (SysUser user : users)
+        {
+            tempList.add(user.getUserId());
+        }
+
+        if (returnList.isEmpty())
+        {
+            returnList = users;
+        }
+        return returnList;
+    }
+
+    /**
+     * 根据投票id查询用户树信息
+     *
+     * @param voteId 投票ID
+     * @return 选中用户列表
+     */
+    @Override
+    public List<Integer> selectUserListByVoteId(Long voteId) {
+        List<Integer> userIds = votePermissionMapper.selectListByVoteId(voteId);
+        return userIds;
     }
 }

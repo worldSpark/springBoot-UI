@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vote.mapper.VoteOptionMapper">
+
+    <resultMap type="VoteOption" id="VoteOptionResult">
+        <result property="id"    column="id"    />
+        <result property="voteId"    column="vote_id"    />
+        <result property="content"    column="content"    />
+        <result property="ticketNum"    column="ticket_num"    />
+        <result property="title" column="title"/>
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectVoteOptionVo">
+        select vo.* from vote_option vo
+    </sql>
+
+ <!--   <sql id="selectVoteOptionVo">
+        select vo.id,vo.content,v.create_time,vo.vote_id,/*sum(uv.id) */ vo.ticket_num,su.nick_name nickName,su.user_id userId from vote_option vo
+          left join vote v on v.id = vo.vote_id
+          left join user_vote uv on vo.id=uv.vote_option_id
+          INNER JOIN sys_user su on uv.user_id=su.user_id
+    </sql>-->
+
+    <select id="selectVoteOptionList" parameterType="VoteOption" resultMap="VoteOptionResult">
+        <include refid="selectVoteOptionVo"/>
+        <where>
+            <if test="voteId != null "> and vo.vote_id = #{voteId}</if>
+            <if test="content != null  and content != ''"> and vo.content like concat('%', #{content}, '%') </if>
+            <if test="ticketNum != null "> and vo.ticket_num = #{ticketNum}</if>
+        </where>
+--         GROUP BY uv.id
+    </select>
+
+    <select id="selectVoteOptionById" parameterType="Long" resultMap="VoteOptionResult">
+        <include refid="selectVoteOptionVo"/>
+        where vo.id = #{id}
+    </select>
+
+    <sql id="selectVoteOption">
+        select
+            vo.id, vo.content, v.title, vo.vote_id, vo.ticket_num
+        from
+            vote_option vo
+            left join vote v on v.id = vo.vote_id
+    </sql>
+
+    <select id="getVoteOptionList" parameterType="VoteOption" resultMap="VoteOptionResult">
+        <include refid="selectVoteOption"/>
+        <where>
+            <if test="voteId != null and voteId>0 "> and vo.vote_id =  # {voteId}</if>
+            <if test="title != null "> and v.title like concat('%', #{title}, '%')</if>
+            <if test="content != null  and content != ''"> and vo.content like concat('%', #{content}, '%')</if>
+        </where>
+    </select>
+
+    <select id="getVoteOptionById" parameterType="Long" resultMap="VoteOptionResult">
+        <include refid="selectVoteOption"/>
+        where vo.id = #{id}
+    </select>
+    <select id="voteOptionSelects" resultType="java.util.Map" parameterType="java.lang.Long">
+        select
+            vo.id, vo.content
+        from
+            vote_option vo
+        where vo.vote_id = #{voteId}
+    </select>
+
+    <insert id="insertVoteOption" parameterType="VoteOption">
+        insert into vote_option
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="voteId != null">vote_id,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="ticketNum != null">ticket_num,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="voteId != null">#{voteId},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="ticketNum != null">#{ticketNum},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateVoteOption" parameterType="VoteOption">
+        update vote_option
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="voteId != null">vote_id = #{voteId},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="ticketNum != null">ticket_num = #{ticketNum},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteVoteOptionById" parameterType="Long">
+        delete from vote_option where id = #{id}
+    </delete>
+
+    <delete id="deleteVoteOptionByIds" parameterType="String">
+        delete from vote_option where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

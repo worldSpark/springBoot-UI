@@ -18,10 +18,34 @@ export function getUser(userId) {
   })
 }
 
+// 查询用户下拉树结构
+export function treeselect() {
+  return request({
+    url: '/system/user/treeselect',
+    method: 'get'
+  })
+}
+
+// 根据投票id查询用户下拉树结构
+export function voteUserTreeselect(voteId) {
+  return request({
+    url: '/system/user/voteUserTreeselect/' + voteId,
+    method: 'get'
+  })
+}
+
 // 新增用户
 export function addUser(data) {
   return request({
     url: '/system/user',
+    method: 'post',
+    data: data
+  })
+}
+
+export function register(data) {
+  return request({
+    url: '/register',
     method: 'post',
     data: data
   })

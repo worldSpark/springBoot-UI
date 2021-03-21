@@ -1,5 +1,6 @@
 package com.common.core.domain;
 
+import com.common.core.domain.entity.SysUser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.common.core.domain.entity.SysDept;
 import com.common.core.domain.entity.SysMenu;
@@ -44,6 +45,13 @@ public class TreeSelect implements Serializable
         this.id = menu.getMenuId();
         this.label = menu.getMenuName();
         this.children = menu.getChildren().stream().map(TreeSelect::new).collect(Collectors.toList());
+    }
+
+    public TreeSelect(SysUser user)
+    {
+        this.id = user.getUserId();
+        this.label = user.getUserName();
+        this.children = user.getChildren().stream().map(TreeSelect::new).collect(Collectors.toList());
     }
 
     public Long getId()

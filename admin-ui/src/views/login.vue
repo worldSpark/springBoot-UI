@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">后台管理系统</h3>
+      <h3 class="title">投票系统</h3>
       <el-form-item prop="username">
         <el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="账号">
           <svg-icon slot="prefix" icon-class="user" class="el-input__icon input-icon" />
@@ -32,7 +32,16 @@
           <img :src="codeUrl" @click="getCode" class="login-code-img"/>
         </div>
       </el-form-item>
-      <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
+      <el-form-item style="height: 28px;">
+        <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-plus"
+          size="mini"
+          @click="handleAdd" style="float: right"
+        >注册</el-button>
+      </el-form-item>
       <el-form-item style="width:100%;">
         <el-button
           :loading="loading"
@@ -50,6 +59,57 @@
     <div class="el-login-footer">
       <span>Copyright © vue</span>
     </div>
+    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item v-if="form.userId == undefined" label="用户名称" prop="userName">
+              <el-input v-model="form.userName" placeholder="请输入用户名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item v-if="form.userId == undefined" label="用户密码" prop="password">
+              <el-input v-model="form.password" placeholder="请输入用户密码" type="password" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="手机号码" prop="phonenumber">
+              <el-input v-model="form.phonenumber" placeholder="请输入手机号码" maxlength="11" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户昵称" prop="nickName">
+              <el-input v-model="form.nickName" placeholder="请输入用户昵称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户性别">
+              <el-select v-model="form.sex" placeholder="请选择">
+                <el-option
+                  v-for="dict in sexOptions"
+                  :key="dict.dictValue"
+                  :label="dict.dictLabel"
+                  :value="dict.dictValue"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -57,19 +117,63 @@
 import { getCodeImg } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from '@/utils/jsencrypt'
+import { register } from "@/api/system/user";
+import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+
 
 export default {
   name: "Login",
   data() {
     return {
       codeUrl: "",
+      // 默认密码
+      initPassword: undefined,
+      // 是否显示弹出层
+      open: false,
+      // 弹出层标题
+      title: "",
       cookiePassword: "",
+      // 性别状态字典
+      sexOptions: [{
+        dictLabel:'男',
+        dictValue: '1'
+      },{
+        dictLabel: '女',
+        dictValue: '2'
+      }],
+      // 表单参数
+      form: {},
       loginForm: {
-        username: "admin",
-        password: "admin123",
+        username: "",
+        password: "",
         rememberMe: false,
         code: "",
         uuid: ""
+      },
+      rules: {
+        userName: [
+          { required: true, message: "用户名称不能为空", trigger: "blur" }
+        ],
+        nickName: [
+          { required: true, message: "用户昵称不能为空", trigger: "blur" }
+        ],
+        password: [
+          { required: true, message: "用户密码不能为空", trigger: "blur" }
+        ],
+        email: [
+          {
+            type: "email",
+            message: "'请输入正确的邮箱地址",
+            trigger: ["blur", "change"]
+          }
+        ],
+        phonenumber: [
+          {
+            pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
+            message: "请输入正确的手机号码",
+            trigger: "blur"
+          }
+        ]
       },
       loginRules: {
         username: [
@@ -80,8 +184,8 @@ export default {
         ],
         code: [{ required: true, trigger: "change", message: "验证码不能为空" }]
       },
+      redirect: undefined,
       loading: false,
-      redirect: undefined
     };
   },
   watch: {
@@ -97,6 +201,38 @@ export default {
     this.getCookie();
   },
   methods: {
+    // 表单重置
+    reset() {
+      this.form = {
+        userId: undefined,
+        deptId: undefined,
+        userName: undefined,
+        nickName: undefined,
+        password: undefined,
+        phonenumber: undefined,
+        email: undefined,
+        sex: undefined,
+        status: "0",
+        remark: undefined,
+        postIds: [],
+        roleIds: []
+      };
+      this.resetForm("form");
+    },
+    cancel() {
+      this.open = false;
+      this.reset();
+    },
+    submitForm: function() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          register(this.form).then(response => {
+            this.msgSuccess("新增成功");
+            this.open = false;
+          });
+        }
+      });
+    },
     getCode() {
       getCodeImg().then(res => {
         this.codeUrl = "data:image/gif;base64," + res.img;
@@ -112,6 +248,12 @@ export default {
         password: password === undefined ? this.loginForm.password : decrypt(password),
         rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
       };
+    },
+    handleAdd() {
+      this.reset();
+      this.open = true;
+      this.title = "用户注册";
+      this.form.password = this.initPassword;
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {

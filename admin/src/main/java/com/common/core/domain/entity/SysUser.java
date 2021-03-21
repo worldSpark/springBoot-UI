@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -62,6 +63,9 @@ public class SysUser extends BaseEntity
     /** 盐加密 */
     private String salt;
 
+    /*用户角色信息,用于字符串拼接*/
+    private String roleName;
+
     /** 帐号状态（0正常 1停用） */
     @Excel(name = "帐号状态", readConverterExp = "0=正常,1=停用")
     private String status;
@@ -93,9 +97,30 @@ public class SysUser extends BaseEntity
     /** 岗位组 */
     private Long[] postIds;
 
+    /** 子菜单 */
+    private List<SysUser> children = new ArrayList<SysUser>();
+
     public SysUser()
     {
 
+    }
+
+    public List<SysUser> getChildren()
+    {
+        return children;
+    }
+
+    public void setChildren(List<SysUser> children)
+    {
+        this.children = children;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public SysUser(Long userId)
