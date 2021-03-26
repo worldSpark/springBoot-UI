@@ -354,10 +354,10 @@ export default {
     },
     addSelectItem() {
       //先判断是否达到上限
-      if(this.contentOptions.length>this.selRow.optionNum){
+      /*if(this.form.contents.length>this.selRow.optionNum){
         this.msgError("已经达到上限候选项,上限数为:"+this.selRow.optionNum);
         return;
-      }
+      }*/
       //再判断是否label已赋值,没有赋值不让新增
       if(!this.contentOptions[this.contentOptions.length-1].content){
         this.msgError("请先输入当前选项内容");

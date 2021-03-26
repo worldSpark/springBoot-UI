@@ -15,16 +15,23 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.mgt.RealmSecurityManager;
 import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.crazycake.shiro.RedisSessionDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * 身份校验核心类
- * 
+ *
  * @ClassName: MyShiroRealm
  * @author fuce
  * @date 2018年8月25日
@@ -32,17 +39,20 @@ import java.util.List;
  */
 @Service
 public class MyShiroRealm extends AuthorizingRealm {
-	
+
 	@Autowired
 	private TsysUserDao tsysUserDao;
-	
+
 	@Autowired
 	private PermissionDao permissionDao;//权限dao
-	
+
 	@Autowired
 	private RoleDao roleDao ;//角色dao
-	
-	
+
+	@Autowired
+	private RedisSessionDAO redisSessionDAO;
+
+
 	/**
 	 * 认证登陆
 	 */
@@ -50,7 +60,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 	@Override
 	protected AuthenticationInfo doGetAuthenticationInfo(
 			AuthenticationToken token) throws AuthenticationException {
-		
+
 		 //加这一步的目的是在Post请求的时候会先进认证，然后在到请求
         if (token.getPrincipal() == null) {
             return null;
@@ -72,17 +82,17 @@ public class MyShiroRealm extends AuthorizingRealm {
 			);
 			return authenticationInfo;
 		}
-		
+
 	}
-	
+
 	 /**
      * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
      */
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 		//System.out.println("权限配置-->MyShiroRealm.doGetAuthorizationInfo()");
-		if(principals == null){  
-	       throw new AuthorizationException("principals should not be null");  
+		if(principals == null){
+	       throw new AuthorizationException("principals should not be null");
 	    }
 		SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
 		TsysUser userinfo  = (TsysUser)principals.getPrimaryPrincipal();
@@ -98,13 +108,13 @@ public class MyShiroRealm extends AuthorizingRealm {
 				if(StringUtils.isNotEmpty(p.getPerms())){
 					authorizationInfo.addStringPermission(p.getPerms());
 				}
-				
+
 			}
 		}
-		
+
 		return authorizationInfo;
 	}
-	
+
 	 /**
      * 清理缓存权限
      */
@@ -112,5 +122,43 @@ public class MyShiroRealm extends AuthorizingRealm {
     {
         this.clearCachedAuthorizationInfo(SecurityUtils.getSubject().getPrincipals());
     }
+
+	/**
+	 * 根据userId 清除当前session存在的用户的权限缓存
+	 * @param userIds 已经修改了权限的userId
+	 */
+	public void clearUserAuthByUserId(List<String> userIds){
+		if(null == userIds || userIds.size() == 0){
+			return ;
+		}
+		//获取所有session
+		Collection<Session> sessions = redisSessionDAO.getActiveSessions();
+		//定义返回
+		List<SimplePrincipalCollection> list = new ArrayList<SimplePrincipalCollection>();
+		for (Session session:sessions){
+			//获取session登录信息。
+			Object obj = session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY);
+			if(null != obj && obj instanceof SimplePrincipalCollection){
+				//强转
+				SimplePrincipalCollection spc = (SimplePrincipalCollection)obj;
+				//判断用户，匹配用户ID。
+				obj = spc.getPrimaryPrincipal();
+				if(null != obj && obj instanceof TsysUser){
+					TsysUser user = (TsysUser) obj;
+					System.out.println("user:"+user);
+					//比较用户ID，符合即加入集合
+					if(null != user && userIds.contains(user.getId())){
+						list.add(spc);
+					}
+				}
+			}
+		}
+		RealmSecurityManager securityManager =
+				(RealmSecurityManager) SecurityUtils.getSecurityManager();
+		MyShiroRealm realm = (MyShiroRealm)securityManager.getRealms().iterator().next();
+		for (SimplePrincipalCollection simplePrincipalCollection : list) {
+			realm.clearCachedAuthorizationInfo(simplePrincipalCollection);
+		}
+	}
 
 }

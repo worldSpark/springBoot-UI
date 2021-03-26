@@ -1,6 +1,5 @@
 package com.fc.service;
 
-import com.fc.model.auto.*;
 import com.fc.common.base.BaseService;
 import com.fc.common.support.ConvertUtil;
 import com.fc.mapper.auto.TSysRoleUserMapper;
@@ -11,6 +10,7 @@ import com.fc.mapper.custom.TsysUserDao;
 import com.fc.model.auto.*;
 import com.fc.model.custom.RoleVo;
 import com.fc.model.custom.Tablepar;
+import com.fc.shiro.util.ShiroUtils;
 import com.fc.util.MD5Util;
 import com.fc.util.SnowflakeIdWorker;
 import com.fc.util.StringUtils;
@@ -35,23 +35,23 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 	//生成的用户dao
 	@Autowired
 	private TsysUserMapper tsysUserMapper;
-	
+
 	//生成的角色用户dao
 	@Autowired
 	private TSysRoleUserMapper tSysRoleUserMapper;
-	
+
 	//自定义角色dao
 	@Autowired
 	private RoleDao roleDao;
-	
+
 	//自动生成的角色dao
 	@Autowired
 	private TsysRoleMapper tsysRoleMapper;
-	
+
 	//自定义用户dao
 	@Autowired
 	private TsysUserDao userDao ;
-	
+
 	/**
 	 * 分页查询
 	 * @param pageNum
@@ -65,7 +65,7 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		 return  pageInfo;
 	 }
 
-	
+
 	@Override
 	@Transactional
 	public int deleteByPrimaryKey(String ids) {
@@ -81,7 +81,7 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		return i;
 
 	}
-	
+
 	/**
 	 * 添加用户
 	 */
@@ -89,7 +89,7 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 	public int insertSelective(TsysUser record) {
 		return tsysUserMapper.insertSelective(record);
 	}
-	
+
 	/**
 	 * 添加用户跟角色信息
 	 * @param record
@@ -107,62 +107,62 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 				 tSysRoleUserMapper.insertSelective(roleUser);
 			}
 		}
-		
+
 		//密码加密
 		record.setPassword(MD5Util.encode(record.getPassword()));
 		return tsysUserMapper.insertSelective(record);
 	}
-	
+
 	@Override
 	public TsysUser selectByPrimaryKey(String id) {
-		
+
 		return tsysUserMapper.selectByPrimaryKey(id);
 	}
 
-	
+
 	@Override
 	public int updateByPrimaryKeySelective(TsysUser record) {
 		record.setPassword(MD5Util.encode(record.getPassword()));
 		return tsysUserMapper.updateByPrimaryKeySelective(record);
 	}
-	
-	
-	
 
-	
+
+
+
+
 	@Override
 	public int updateByExampleSelective(TsysUser record, TsysUserExample example) {
-		
+
 		return tsysUserMapper.updateByExampleSelective(record, example);
 	}
 
-	
+
 	@Override
 	public int updateByExample(TsysUser record, TsysUserExample example) {
-		
+
 		return tsysUserMapper.updateByExample(record, example);
 	}
 
 	@Override
 	public List<TsysUser> selectByExample(TsysUserExample example) {
-		
+
 		return tsysUserMapper.selectByExample(example);
 	}
 
-	
+
 	@Override
 	public long countByExample(TsysUserExample example) {
-		
+
 		return tsysUserMapper.countByExample(example);
 	}
 
-	
+
 	@Override
 	public int deleteByExample(TsysUserExample example) {
-		
+
 		return tsysUserMapper.deleteByExample(example);
 	}
-	
+
 	/**
 	 * 检查用户name
 	 * @param tsysUser
@@ -172,10 +172,10 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		TsysUserExample example=new TsysUserExample();
 		example.createCriteria().andUsernameEqualTo(tsysUser.getUsername());
 		List<TsysUser> list=tsysUserMapper.selectByExample(example);
-		
+
 		return list.size();
 	}
-	
+
 	/**
 	 * 获取所有权限 并且增加是否有权限字段
 	 * @return
@@ -207,8 +207,8 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		}
 		return list;
 	}
-	
-	
+
+
 	/**
 	 * 修改用户密码
 	 * @param record
@@ -219,12 +219,11 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		//修改用户信息
 		return tsysUserMapper.updateByPrimaryKeySelective(record);
 	}
-	
-	
+
+
 	/**
 	 * 修改用户信息以及角色信息
 	 * @param record
-	 * @param roles
 	 * @return
 	 */
 	@Transactional
@@ -244,7 +243,10 @@ public class SysUserService implements BaseService<TsysUser, TsysUserExample>{
 		//修改用户信息
 		return tsysUserMapper.updateByPrimaryKeySelective(record);
 	}
-	
-	
-	
+
+	public boolean judgeIfHavaSystemRole() {
+		TsysUser user = ShiroUtils.getUser();
+		return false;
+	}
+
 }
