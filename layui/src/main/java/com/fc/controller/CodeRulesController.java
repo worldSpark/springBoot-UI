@@ -1,8 +1,8 @@
 package com.fc.controller;
 
 import com.fc.common.domain.SqlCondition;
-import com.fc.model.common.CodeRuleSub;
-import com.fc.model.common.CodeRules;
+import com.fc.model.logistics.CodeRuleSub;
+import com.fc.model.logistics.CodeRules;
 import com.fc.service.common.CodeRulesService;
 import com.fc.service.common.CommonService;
 import com.fc.service.SysUserService;

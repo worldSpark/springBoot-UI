@@ -1,8 +1,8 @@
 package com.fc.service.common;
 
 
-import com.fc.model.common.CodeRuleSub;
-import com.fc.model.common.CodeRules;
+import com.fc.model.logistics.CodeRuleSub;
+import com.fc.model.logistics.CodeRules;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

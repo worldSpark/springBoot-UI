@@ -2,9 +2,9 @@ package com.fc.controller;
 
 import com.fc.common.domain.SqlCondition;
 import com.fc.mapper.SqlMapper;
-import com.fc.model.common.ChangeRelation;
-import com.fc.model.common.ChangeRelationSub;
-import com.fc.model.common.LogisticsUnit;
+import com.fc.model.logistics.ChangeRelation;
+import com.fc.model.logistics.ChangeRelationSub;
+import com.fc.model.logistics.LogisticsUnit;
 import com.fc.service.SysUserService;
 import com.fc.service.common.ChangeRelationService;
 import com.fc.service.common.CommonService;
