@@ -1,4 +1,4 @@
-package com.fc.model;
+package com.fc.model.common;
 
 
 import lombok.Data;
