@@ -21,7 +21,7 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
-import org.crazycake.shiro.RedisSessionDAO;
+//import org.crazycake.shiro.RedisSessionDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,8 +49,8 @@ public class MyShiroRealm extends AuthorizingRealm {
 	@Autowired
 	private RoleDao roleDao ;//角色dao
 
-	@Autowired
-	private RedisSessionDAO redisSessionDAO;
+	/*@Autowired
+	private RedisSessionDAO redisSessionDAO;*/
 
 
 	/**
@@ -127,7 +127,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 	 * 根据userId 清除当前session存在的用户的权限缓存
 	 * @param userIds 已经修改了权限的userId
 	 */
-	public void clearUserAuthByUserId(List<String> userIds){
+/*	public void clearUserAuthByUserId(List<String> userIds){
 		if(null == userIds || userIds.size() == 0){
 			return ;
 		}
@@ -159,6 +159,6 @@ public class MyShiroRealm extends AuthorizingRealm {
 		for (SimplePrincipalCollection simplePrincipalCollection : list) {
 			realm.clearCachedAuthorizationInfo(simplePrincipalCollection);
 		}
-	}
+	}*/
 
 }

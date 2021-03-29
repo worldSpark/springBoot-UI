@@ -25,6 +25,9 @@ import java.util.Map;
  *  11、增加deleteByTableNameAndCondition方法                                             by luoy 2019-04-29
  *  12、重载了isColumnExist方法，支持List                                                  by luoy 2019-08-08
  *  13、调整了insertMap方法，只插入表中有的字段，无关字段会跳过                                by luoy 2019-09-10
+ *  14、调整了convertMapKeyFromUnderlineToUpperCase，支持多层Map                           by luoy 2020-03-02
+ *  14、调整了convertMapKeyFromUnderlineToUpperCase，支持多层Map                           by luoy 2020-03-02
+ *  15、增加了orderByMap，支持list-Map排序                                                by luoy 2020-03-16
  * @author luoy
  * @Date 2018年07月26日 上午11:53:00
  * @version 1.0.0
@@ -94,7 +97,7 @@ public interface CommonService {
      * @param sqlCondition sql查询条件
      * @return count
      */
-    int delete(Class objectClass,SqlCondition sqlCondition);
+    int delete(Class objectClass, SqlCondition sqlCondition);
 
     /**
      * @Description 更新一条记录
@@ -424,6 +427,14 @@ public interface CommonService {
      */
     CommonClassInfo getCommonClassInfo(Class<?> objectClass);
 
+    /**
+     * @Description 全能方法 把class转成方便使用的对象
+     * @param objectClass 类对象
+     * @param withOutAnnotation 忽略注解，没有注解的时候也能解析成功
+     * @return 类信息对象
+     */
+    CommonClassInfo getCommonClassInfo(Class<?> objectClass, boolean withOutAnnotation);
+
 
     /**
      * @Description 将list中的某个字段转换成某张表中的字段
@@ -471,8 +482,8 @@ public interface CommonService {
      * @return list
      */
     Map<String,Object> convertMapKeyToAnotherMapKey(Map<String,Object> map,String tableName,
-                                                    String keyColumnName, String targetColumnName,
-                                                    String keyMapName, String targetMapName);
+                                                          String keyColumnName, String targetColumnName,
+                                                          String keyMapName, String targetMapName);
 
     /**
      * @Description 将map中的某个字段转换成某张表中的字段
@@ -486,9 +497,9 @@ public interface CommonService {
      * @return list
      */
     Map<String,Object> convertMapKeyToAnotherMapKey(Map<String,Object> map,String tableName,
-                                                    String keyColumnName, String targetColumnName,
-                                                    String keyMapName, String targetMapName,
-                                                    String separator);
+                                                          String keyColumnName, String targetColumnName,
+                                                          String keyMapName, String targetMapName,
+                                                          String separator);
 
     /**
      * @Description list to map,将对象中的某个字段作为map中的key
@@ -526,5 +537,68 @@ public interface CommonService {
      * @return 表字段名
      */
     String getColumnNameByFieldName(String fieldName);
+
+    /**
+     * @Description 获得注解上的值
+     * @param object 需要取参数的对象
+     * @param annotationClass 注解对象
+     * @param name 注解中的参数
+     * @return value
+     */
+     Object getAnnotationValue(Object object,Class annotationClass,String name);
+
+    /**
+     * @Description 按拼音排序
+     * @param list string集合
+     * @return list 排序后的集合
+     */
+    List<String> orderByPinYin(List<String> list);
+
+    /**
+     * @Description 将集合对象中的某个字段按拼音排序
+     * @param list 对象集合
+     * @param fieldName 存储中文的变量名，建议String类型
+     * @return list 排序后的集合
+     */
+    <T> List<T> orderByPinYin(List<T> list, String fieldName);
+
+    /**
+     * @Description 将集合对象中的某个字段按已知集合排序
+     * @param list 对象集合
+     * @param fieldName 变量名，建议String类型
+     * @param assistList 辅助集合
+     * @return list 排序后的集合
+     */
+    <T> List<T> orderByAssistList(List<T> list, String fieldName, List<String> assistList);
+
+    /**
+     * @Description 将Map集合中的某个字段按已知集合排序
+     * @param list Map集合
+     * @param keyName 变量名，建议String类型
+     * @param assistList 辅助集合
+     * @return list 排序后的集合
+     */
+    List<Map<String, Object>> orderMapByAssistList(List<Map<String, Object>> list, String keyName, List<String> assistList);
+
+    /**
+     * @Description 将集合对象中的某个字段直接排序
+     * @param list 对象集合
+     * @param fieldName 变量名，建议String、int类型
+     * @param isAsc true正序 false倒序
+     * @return list 排序后的集合
+     */
+    <T> List<T> orderByField(List<T> list, String fieldName, boolean isAsc);
+
+    /**
+     * @Description 将集合List-Map中的某个字段直接排序
+     * @param list 对象集合
+     * @param fieldName 变量名，建议String、int类型
+     * @param fieldType 字段排序方式，STRING(拼音排序)，INT(数字排序)
+     * @param isAsc true正序 false倒序
+     * @return list 排序后的集合
+     */
+    List<Map<String, Object>> orderByMap(List<Map<String, Object>> list, String fieldName, String fieldType, boolean isAsc);
+
     //--------------------------------其它↑--------------------------------
+
 }

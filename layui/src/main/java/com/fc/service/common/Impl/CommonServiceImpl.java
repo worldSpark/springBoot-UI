@@ -7,17 +7,19 @@ import com.fc.common.conf.CommonConfig;
 import com.fc.common.domain.CommonClassInfo;
 import com.fc.common.domain.CommonFieldInfo;
 import com.fc.common.domain.SqlCondition;
+import com.fc.config.ApplicationConfig;
 import com.fc.mapper.SqlMapper;
 import com.fc.service.common.CommonService;
 import com.fc.util.ArrayUtil;
 import com.fc.util.GlobalFunc;
+import com.fc.util.Pinyin4JHelper;
 import com.fc.util.SqlUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.sun.istack.internal.logging.Logger;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,14 +41,14 @@ import java.util.*;
 @Transactional
 public class CommonServiceImpl implements CommonService {
 
-    public static final Logger log = Logger.getLogger(CommonServiceImpl.class);
+    public static final Logger log = LoggerFactory.getLogger(CommonServiceImpl.class);
 
     @Autowired
     private SqlMapper sqlMapper;
 
     @Override
     public int insert(Object object) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
 
         Class objectClass = object.getClass();
@@ -77,7 +79,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public <T> int insertList(List<T> list, Integer size) {
-        int count = -1;
+        int count = 0;
         // 空集合直接结束
         if(list == null || list.isEmpty()){
             return count;
@@ -123,7 +125,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int delete(Object object) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
 
         // 表名↓
@@ -147,7 +149,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int delete(Class objectClass,String id) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         // 类信息↓
         CommonClassInfo classInfo = this.getCommonClassInfo(objectClass);
@@ -167,7 +169,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int delete(Class objectClass,List<String> ids){
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         // 类信息↓
         CommonClassInfo classInfo = this.getCommonClassInfo(objectClass);
@@ -192,7 +194,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int delete(Class objectClass, SqlCondition sqlCondition) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         // 类信息↓
         CommonClassInfo classInfo = this.getCommonClassInfo(objectClass);
@@ -218,7 +220,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int update(Object object) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         Class objectClass = object.getClass();
         // 类信息↓
@@ -242,7 +244,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int update(Object object, SqlCondition sqlCondition) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         Class objectClass = object.getClass();
         // 类信息↓
@@ -270,7 +272,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int updateSelective(Object object) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         Class objectClass = object.getClass();
         // 类信息↓
@@ -294,7 +296,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public int updateSelective(Object object, SqlCondition sqlCondition) {
-        int count = -1;
+        int count = 0;
         StringBuffer sql = new StringBuffer();
         Class objectClass = object.getClass();
         // 类信息↓
@@ -331,7 +333,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public <T> int updateList(List<T> list, int size) {
         // 更新顺序，从前往后
-        int totalCount = -1;
+        int totalCount = 0;
         if(list == null || list.size() == 0){
             return totalCount;
         }
@@ -382,6 +384,10 @@ public class CommonServiceImpl implements CommonService {
                     // 跳过主键
                     continue;
                 }
+                if(StringUtils.isBlank(columnName)){
+                    // 没有字段注解，则跳过
+                    continue;
+                }
                 sql.append(columnName + " = CASE " + keyFieldInfo.getColumnName());
                 // 遍历数据
                 for(int j = 0;j < tempList.size(); j++){
@@ -394,7 +400,8 @@ public class CommonServiceImpl implements CommonService {
                     Object value = this.getValueByObjectAndMethodName(obj, getMethodName);
                     // 转义
                     String valueStr = this.valueTransference(value);
-                    if(valueStr.equals("null")){
+                    // sqlServer不支持设置为null
+                    if("null".equals(valueStr)){
                         valueStr = "''";
                     }
                     sql.append(" WHEN '" + currentId + "' THEN " + valueStr);
@@ -427,7 +434,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public <T> int updateListSelective(List<T> list, int size) {
         // 更新顺序，从前往后
-        int totalCount = -1;
+        int totalCount = 0;
         if(list == null || list.size() == 0){
             return totalCount;
         }
@@ -475,6 +482,10 @@ public class CommonServiceImpl implements CommonService {
                 String getMethodName = fieldInfo.getGetMethodName();
                 if(fieldInfo.isKey() || fieldInfo.equals(keyFieldInfo)){
                     // 跳过主键
+                    continue;
+                }
+                if(StringUtils.isBlank(columnName)){
+                    // 没有字段注解，则跳过
                     continue;
                 }
                 StringBuffer setSql = new StringBuffer();
@@ -682,7 +693,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public boolean isTableExist(String tableName) {
         String sql = "select count(1) from INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='" + tableName + "'";
-        sql += " and " + CommonConfig.DATA_BASE_COLUMN + " = '" + CommonConfig.DATA_BASE_NAME + "'";
+        sql += " and " + CommonConfig.DATA_BASE_COLUMN + " = '" + ApplicationConfig.getDataBaseName() + "'";
         int count = this.sqlMapper.sqlCount(sql);
         return count > 0;
     }
@@ -705,7 +716,6 @@ public class CommonServiceImpl implements CommonService {
         StringBuffer sql = new StringBuffer();
         sql.append(" select distinct column_name from INFORMATION_SCHEMA.COLUMNS");
         sql.append(" WHERE TABLE_NAME = '" + tableName + "'");
-        sql.append(" and " + CommonConfig.DATA_BASE_COLUMN + " = '" + CommonConfig.DATA_BASE_NAME + "'");
 
         List<String> columnList = sqlMapper.sqlQueryWithUniqueColumnList(sql.toString());
 
@@ -741,7 +751,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public List<String> getTableByCondition(SqlCondition sqlCondition) {
         String sql = "select distinct table_name from INFORMATION_SCHEMA.columns";
-        sql += " where " + CommonConfig.DATA_BASE_COLUMN + " = '" + CommonConfig.DATA_BASE_NAME + "'";
+        sql += " where " + CommonConfig.DATA_BASE_COLUMN + " = '" + ApplicationConfig.getDataBaseName() + "'";
         // 条件语句
         String conditionSql = sqlCondition.getSql();
         sql += conditionSql;
@@ -753,7 +763,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public List<String> getColumnByTableName(String tableName) {
         String sql = "select distinct column_name from INFORMATION_SCHEMA.columns where table_name='" + tableName + "'";
-        sql +=  " and " + CommonConfig.DATA_BASE_COLUMN + " = '" + CommonConfig.DATA_BASE_NAME + "'";
+        sql +=  " and " + CommonConfig.DATA_BASE_COLUMN + " = '" + ApplicationConfig.getDataBaseName() + "'";
         List<String> columnList = this.sqlMapper.sqlQueryWithUniqueColumnList(sql);
 
         return columnList;
@@ -762,7 +772,7 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public List<String> getColumnByCondition(SqlCondition sqlCondition) {
         String sql = "select distinct column_name from INFORMATION_SCHEMA.columns";
-        sql +=  " where " + CommonConfig.DATA_BASE_COLUMN + " = '" + CommonConfig.DATA_BASE_NAME + "'";
+        sql +=  " where " + CommonConfig.DATA_BASE_COLUMN + " = '" + ApplicationConfig.getDataBaseName() + "'";
         // 条件语句
         String conditionSql = sqlCondition.getSql();
         sql += conditionSql;
@@ -778,7 +788,7 @@ public class CommonServiceImpl implements CommonService {
             return object;
         }
         // 类信息↓
-        CommonClassInfo classInfo = this.getCommonClassInfo(objectClass);
+        CommonClassInfo classInfo = this.getCommonClassInfo(objectClass, true);
         // 字段信息↓
         List<CommonFieldInfo> commonFieldInfoList = classInfo.getCommonFieldInfoList();
 
@@ -794,15 +804,30 @@ public class CommonServiceImpl implements CommonService {
                 String columnName = fieldInfo.getColumnName();
                 // 传值属性
                 Class<?> fieldClass = fieldInfo.getFieldClass();
+                if(StringUtils.isBlank(columnName)){
+                    // 没有字段注解，则跳过
+                    continue;
+                }
                 // 取得它的set方法
                 Method method = null;
-                try{
-                    method = objectClass.getDeclaredMethod(methodName, fieldClass);
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
+                Method[] declaredMethods = objectClass.getDeclaredMethods();
+                for (Method declaredMethod : declaredMethods) {
+                    // 方法名
+                    String currentMethodName = declaredMethod.getName();
+                    // 参数
+                    Class<?>[] parameterTypes = declaredMethod.getParameterTypes();
+                    // 名称相等
+                    if(currentMethodName.equalsIgnoreCase("set" + fieldName)){
+                        // 参数相同
+                        if(parameterTypes != null && parameterTypes.length > 0 && parameterTypes[0] == fieldClass){
+                            // 匹配成功
+                            method = declaredMethod;
+                            break;
+                        }
+                    }
                 }
                 // 取值↓
-                if(map.containsKey(columnName)){
+                if(method != null && map.containsKey(columnName)){
                     Object value = map.get(columnName);
                     // 使用set方法↓
                     if(fieldClass == String.class){
@@ -885,7 +910,7 @@ public class CommonServiceImpl implements CommonService {
         // 遍历所有字段
         for(int i = 0;i < columnNameList.size();i++){
             String name = columnNameList.get(i);
-            String value = this.valueTransference(map.get(name));
+            String value = this.valueTransference(GlobalFunc.toString(map.get(name)));
             columnName += name + ",";
             columnValue += value + ",";
         }
@@ -1000,7 +1025,7 @@ public class CommonServiceImpl implements CommonService {
     public int deleteByTableNameAndCondition(String tableName, SqlCondition sqlCondition) {
         if(sqlCondition == null || sqlCondition.isAndCriteriaListEmpty()){
             // 如果条件为空，不允许删除
-            return -1;
+            return 0;
         }
         String conditionSql = sqlCondition.getSql();
         String sql = "delete from " + tableName + " where 1=1 " + conditionSql;
@@ -1009,16 +1034,8 @@ public class CommonServiceImpl implements CommonService {
     }
 
     @Override
-    public Map convertMapKeyFromUnderlineToUpperCase(Map<String,Object> map) {
-        Map<String,Object> newMap = new HashMap();
-        Iterator<Map.Entry<String, Object>> iterator = map.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, Object> entry = iterator.next();
-            String key = GlobalFunc.toString(entry.getKey());
-            Object value = entry.getValue();
-            String newKey = SqlUtil.convertToUppercase(key);
-            newMap.put(newKey,value);
-        }
+    public Map<String,Object> convertMapKeyFromUnderlineToUpperCase(Map<String,Object> map) {
+        Map<String,Object> newMap = this.innerConvertMapKeyFromUnderlineToUpperCase(new ArrayList<>(), map);
         return newMap;
     }
 
@@ -1112,6 +1129,11 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public CommonClassInfo getCommonClassInfo(Class<?> objectClass){
+        return this.getCommonClassInfo(objectClass, false);
+    }
+
+    @Override
+    public CommonClassInfo getCommonClassInfo(Class<?> objectClass, boolean withOutAnnotation){
         CommonClassInfo classInfo = new CommonClassInfo();
 
         String tableName = "";
@@ -1133,13 +1155,13 @@ public class CommonServiceImpl implements CommonService {
             // get方法名称
             String getMethodName = this.getMethodName("get",fieldName);
             // 表中字段名
-            String columnName = GlobalFunc.toString(this.getAnnotationValue(field,Column.class,"name"));
-            // 表中注解名,中文
-            String annotateName = GlobalFunc.toString(this.getAnnotationValue(field, FieldName.class,"name"));
+            String columnName = GlobalFunc.toString(this.getAnnotationValue(field, Column.class,"name"));
             // 类中字段属性
             Class<?> fieldClass = field.getType();
             // 表中字段属性
-            String columnTypeName = GlobalFunc.toString(this.getAnnotationValue(field, Column.class,"type")).toUpperCase();
+            String columnTypeName = GlobalFunc.toString(this.getAnnotationValue(field,Column.class,"type")).toUpperCase();
+            // 字段中文注释
+            String annotateName = GlobalFunc.toString(this.getAnnotationValue(field, FieldName.class,"name"));
             // 是否为主键
             boolean isKey = false;
             value =  this.getAnnotationValue(field,Column.class,"isKey");
@@ -1152,12 +1174,20 @@ public class CommonServiceImpl implements CommonService {
             if(value != null){
                 isAutoIncrease = (boolean) value;
             }
-            // 这四个参数都是必须的
-            if(StringUtils.isBlank(fieldName)
-                    || StringUtils.isBlank(columnName)
-                    || fieldClass == null
-                    || StringUtils.isBlank(columnTypeName)){
-                continue;
+            // 这四个参数都是必须的（注释后同时适用于非数据库实体）
+//            if(StringUtils.isBlank(fieldName)
+//                    || StringUtils.isBlank(columnName)
+//                    || fieldClass == null
+//                    || StringUtils.isBlank(columnTypeName)){
+//                continue;
+//            }
+
+            if(withOutAnnotation){
+                // 忽略字段没有注解的影响
+                if(field.getAnnotation(Column.class) == null){
+                    columnName = SqlUtil.convertToLowercase(fieldName, "_", "");
+                    columnTypeName = "VARCHAR";
+                }
             }
 
             // 保存
@@ -1166,9 +1196,9 @@ public class CommonServiceImpl implements CommonService {
             commonFieldInfo.setGetMethodName(getMethodName);
             commonFieldInfo.setFieldName(fieldName);
             commonFieldInfo.setColumnName(columnName);
-            commonFieldInfo.setAnnotateName(annotateName);
             commonFieldInfo.setFieldClass(fieldClass);
             commonFieldInfo.setColumnTypeName(columnTypeName);
+            commonFieldInfo.setAnnotateName(annotateName);
             commonFieldInfo.setIsKey(isKey);
             commonFieldInfo.setIsAutoIncrease(isAutoIncrease);
             commonFieldInfo.setSetMethodName(setMethodName);
@@ -1265,17 +1295,17 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public Map<String, Object> convertMapKeyToAnotherMapKey(Map<String, Object> map, String tableName,
-                                                            String keyColumnName, String targetColumnName,
-                                                            String keyMapName, String targetMapName) {
+                                                                  String keyColumnName, String targetColumnName,
+                                                                  String keyMapName, String targetMapName) {
         map = this.convertMapKeyToAnotherMapKey(map,tableName,keyColumnName,targetColumnName,keyMapName,targetMapName,null);
         return map;
     }
 
     @Override
     public Map<String, Object> convertMapKeyToAnotherMapKey(Map<String, Object> map, String tableName,
-                                                            String keyColumnName, String targetColumnName,
-                                                            String keyMapName, String targetMapName,
-                                                            String separator) {
+                                                                  String keyColumnName, String targetColumnName,
+                                                                  String keyMapName, String targetMapName,
+                                                                  String separator) {
         // 第一步，取出所有数据↓
         List<String> valueList = new ArrayList<>();
         if(map.containsKey(keyMapName)){
@@ -1341,7 +1371,7 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public <T> Map<String, T> convertListToMap(List<T> list, String fieldName) {
-        Map<String, T> map = new HashedMap();
+        Map<String, T> map = new HashMap<>();
         if(StringUtils.isBlank(fieldName) || list == null || list.isEmpty()){
             return map;
         }
@@ -1435,16 +1465,8 @@ public class CommonServiceImpl implements CommonService {
         return columnName;
     }
 
-    // ------------------------------------分割线 以下是私有方法------------------------------------
-
-    /**
-     * @Description 获得注解上的值
-     * @param object 需要取参数的对象
-     * @param annotationClass 注解对象
-     * @param name 注解中的参数
-     * @return value
-     */
-    private Object getAnnotationValue(Object object,Class annotationClass,String name){
+    @Override
+    public Object getAnnotationValue(Object object,Class annotationClass,String name){
         Object value = null;
         Annotation annotation = null;
         // 获取注解
@@ -1466,6 +1488,328 @@ public class CommonServiceImpl implements CommonService {
         }
         return value;
     }
+
+    @Override
+    public List<String> orderByPinYin(List<String> list) {
+        List<String> orderList = new ArrayList<>();
+        if(list == null || list.isEmpty()){
+            return list;
+        }
+        // 转换拼音
+        Map<String, List<String>> pinYinMap = new HashMap<>();
+        for(int i = 0;i < list.size();i++){
+            String strValue = list.get(i);
+            // 拼音
+            String pinYin = "";
+            try {
+                pinYin = Pinyin4JHelper.getStringPinYin(strValue);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // 放入
+            if(pinYinMap.containsKey(pinYin)){
+                List<String> strList = pinYinMap.get(pinYin);
+                strList.add(strValue);
+            }else{
+                List<String> strList = new ArrayList<>();
+                strList.add(strValue);
+                pinYinMap.put(pinYin, strList);
+            }
+        }
+        // 拼音排序
+        List<String> pinYinList = new ArrayList<>(pinYinMap.keySet());
+        Collections.sort(pinYinList);
+        // 装回
+        for (String pinYin : pinYinList) {
+            List<String> objList = pinYinMap.get(pinYin);
+            orderList.addAll(objList);
+        }
+        return orderList;
+    }
+
+    @Override
+    public <T> List<T> orderByPinYin(List<T> list, String fieldName) {
+        List<T> orderList = new ArrayList<>();
+        if(list == null || list.isEmpty() || StringUtils.isBlank(fieldName)){
+            return list;
+        }
+
+        // 类信息
+        Class<?> objectClass = list.get(0).getClass();
+        // 字段信息
+        CommonFieldInfo fieldInfo = this.getCommonFieldInfoByFieldName(objectClass, fieldName);
+        if(fieldInfo == null){
+            return orderList;
+        }
+
+        // 转换拼音
+        Map<String, List<T>> pinYinMap = new HashMap<>();
+        String getMethodName = fieldInfo.getGetMethodName();
+        for(int i = 0;i < list.size();i++){
+            T obj = list.get(i);
+            String strValue = GlobalFunc.toString(this.getValueByObjectAndMethodName(obj, getMethodName));
+            // 拼音
+            String pinYin = "";
+            try {
+                pinYin = Pinyin4JHelper.getStringPinYin(strValue);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // 放入
+            if(pinYinMap.containsKey(pinYin)){
+                List<T> objList = pinYinMap.get(pinYin);
+                objList.add(obj);
+            }else{
+                List<T> objList = new ArrayList<>();
+                objList.add(obj);
+                pinYinMap.put(pinYin, objList);
+            }
+        }
+        // 拼音排序
+        List<String> pinYinList = new ArrayList<>(pinYinMap.keySet());
+        Collections.sort(pinYinList);
+        // 装回
+        for (String pinYin : pinYinList) {
+            List<T> objList = pinYinMap.get(pinYin);
+            orderList.addAll(objList);
+        }
+        return orderList;
+    }
+
+    @Override
+    public <T> List<T> orderByAssistList(List<T> list, String fieldName, List<String> assistList) {
+        List<T> orderList = list;
+        if(list == null || list.isEmpty() || StringUtils.isBlank(fieldName) || assistList == null || assistList.isEmpty()){
+            return orderList;
+        }
+
+        // 类信息
+        Class<?> objectClass = list.get(0).getClass();
+        // 字段信息
+        CommonFieldInfo fieldInfo = this.getCommonFieldInfoByFieldName(objectClass, fieldName);
+        if(fieldInfo == null){
+            return orderList;
+        }
+        String getMethodName = fieldInfo.getGetMethodName();
+
+        // 空容器
+        orderList = new ArrayList<>();
+        // 已匹配的位置
+        List<Integer> indexList = new ArrayList<>();
+        for (int i = 0; i < assistList.size(); i++) {
+            String assist = assistList.get(i);
+            T obj = null;
+            for (int j = 0; j < list.size(); j++) {
+                T currentObj = list.get(j);
+                // 排序字段对应的值
+                String strValue = GlobalFunc.toString(this.getValueByObjectAndMethodName(currentObj, getMethodName));
+                if(assist.equals(strValue)){
+                    obj = currentObj;
+                    break;
+                }
+            }
+            if(obj != null){
+                orderList.add(obj);
+                indexList.add(i);
+            }
+        }
+        // 未匹配的放最后
+        for (int i = 0; i < list.size(); i++) {
+            if(!indexList.contains(i)){
+                T obj = list.get(i);
+                orderList.add(obj);
+            }
+        }
+
+        return orderList;
+    }
+
+    @Override
+    public List<Map<String, Object>> orderMapByAssistList(List<Map<String, Object>> list, String keyName, List<String> assistList) {
+        List<Map<String, Object>> orderList = list;
+        if(list == null || list.isEmpty() || StringUtils.isBlank(keyName) || assistList == null || assistList.isEmpty()){
+            return orderList;
+        }
+
+        // 空容器
+        orderList = new ArrayList<>();
+        // 已匹配的位置
+        List<Integer> indexList = new ArrayList<>();
+        for (int i = 0; i < assistList.size(); i++) {
+            String assist = assistList.get(i);
+            Map<String, Object> map = null;
+            for (int j = 0; j < list.size(); j++) {
+                Map<String, Object> currentMap = list.get(j);
+                // 排序字段对应的值
+                String strValue = GlobalFunc.toString(currentMap.get(keyName));
+                if(assist.equals(strValue)){
+                    map = currentMap;
+                    break;
+                }
+            }
+            if(map != null){
+                orderList.add(map);
+                indexList.add(i);
+            }
+        }
+        // 未匹配的放最后
+        for (int i = 0; i < list.size(); i++) {
+            if(!indexList.contains(i)){
+                Map<String, Object> obj = list.get(i);
+                orderList.add(obj);
+            }
+        }
+
+        return orderList;
+    }
+
+    @Override
+    public <T> List<T> orderByField(List<T> list, String fieldName, boolean isAsc) {
+        List<T> orderList = new ArrayList<>();
+        if(list == null || list.isEmpty() || StringUtils.isBlank(fieldName)){
+            return list;
+        }
+
+        // 类信息
+        Class<?> objectClass = list.get(0).getClass();
+        // 字段信息
+        CommonFieldInfo fieldInfo = this.getCommonFieldInfoByFieldName(objectClass, fieldName);
+        if(fieldInfo == null){
+            return orderList;
+        }
+
+        // 类属性
+        Class<?> fieldClass = fieldInfo.getFieldClass();
+        if(int.class.equals(fieldClass) || Integer.class.equals(fieldClass)){
+            // int类型，转换Map
+            Map<Integer, List<T>> integerMap = new HashMap<>();
+            String getMethodName = fieldInfo.getGetMethodName();
+            for(int i = 0;i < list.size();i++){
+                T obj = list.get(i);
+                Integer intValue = GlobalFunc.parseInt(this.getValueByObjectAndMethodName(obj, getMethodName));
+                // 放入
+                if(integerMap.containsKey(intValue)){
+                    List<T> objList = integerMap.get(intValue);
+                    objList.add(obj);
+                }else{
+                    List<T> objList = new ArrayList<>();
+                    objList.add(obj);
+                    integerMap.put(intValue, objList);
+                }
+            }
+            // 数字排序
+            List<Integer> intList = new ArrayList<>(integerMap.keySet());
+            Collections.sort(intList);
+            if(!isAsc){
+                Collections.reverse(intList);
+            }
+            // 装回
+            for (Integer intValue : intList) {
+                List<T> objList = integerMap.get(intValue);
+                orderList.addAll(objList);
+            }
+        }else{
+            // String类型
+            // 转换拼音
+            Map<String, List<T>> strMap = new HashMap<>();
+            String getMethodName = fieldInfo.getGetMethodName();
+            for(int i = 0;i < list.size();i++){
+                T obj = list.get(i);
+                String strValue = GlobalFunc.toString(this.getValueByObjectAndMethodName(obj, getMethodName));
+                // 放入
+                if(strMap.containsKey(strValue)){
+                    List<T> objList = strMap.get(strValue);
+                    objList.add(obj);
+                }else{
+                    List<T> objList = new ArrayList<>();
+                    objList.add(obj);
+                    strMap.put(strValue, objList);
+                }
+            }
+            // 字符排序
+            List<String> strList = new ArrayList<>(strMap.keySet());
+            strList = this.orderByPinYin(strList);
+            if(!isAsc){
+                Collections.reverse(strList);
+            }
+            // 装回
+            for (String str : strList) {
+                List<T> objList = strMap.get(str);
+                orderList.addAll(objList);
+            }
+        }
+
+        return orderList;
+    }
+
+    @Override
+    public List<Map<String, Object>> orderByMap(List<Map<String, Object>> list, String fieldName, String fieldType, boolean isAsc) {
+        List<Map<String, Object>> orderList = new ArrayList<>();
+        if(list == null || list.isEmpty() || StringUtils.isBlank(fieldName) || StringUtils.isBlank(fieldType)){
+            return list;
+        }
+
+        if("INT".equalsIgnoreCase(fieldType)){
+            // int类型，转换Map
+            Map<Integer, List<Map<String, Object>>> integerMap = new HashMap<>();
+            for(int i = 0;i < list.size();i++){
+                Map<String, Object> obj = list.get(i);
+                Integer intValue = GlobalFunc.parseInt(obj.get(fieldName));
+                // 放入
+                if(integerMap.containsKey(intValue)){
+                    List<Map<String, Object>> objList = integerMap.get(intValue);
+                    objList.add(obj);
+                }else{
+                    List<Map<String, Object>> objList = new ArrayList<>();
+                    objList.add(obj);
+                    integerMap.put(intValue, objList);
+                }
+            }
+            // 数字排序
+            List<Integer> intList = new ArrayList<>(integerMap.keySet());
+            Collections.sort(intList);
+            if(!isAsc){
+                Collections.reverse(intList);
+            }
+            // 装回
+            for (Integer intValue : intList) {
+                List<Map<String, Object>> objList = integerMap.get(intValue);
+                orderList.addAll(objList);
+            }
+        }else{
+            // String类型
+            // 转换拼音
+            Map<String, List<Map<String, Object>>> strMap = new HashMap<>();
+            for(int i = 0;i < list.size();i++){
+                Map<String, Object> obj = list.get(i);
+                String strValue = GlobalFunc.toString(obj.get(fieldName));
+                // 放入
+                if(strMap.containsKey(strValue)){
+                    List<Map<String, Object>> objList = strMap.get(strValue);
+                    objList.add(obj);
+                }else{
+                    List<Map<String, Object>> objList = new ArrayList<>();
+                    objList.add(obj);
+                    strMap.put(strValue, objList);
+                }
+            }
+            // 字符排序
+            List<String> strList = new ArrayList<>(strMap.keySet());
+            strList = this.orderByPinYin(strList);
+            if(!isAsc){
+                Collections.reverse(strList);
+            }
+            // 装回
+            for (String str : strList) {
+                List<Map<String, Object>> objList = strMap.get(str);
+                orderList.addAll(objList);
+            }
+        }
+
+        return orderList;
+    }
+
+    // ------------------------------------分割线 以下是私有方法------------------------------------
 
     /**
      * @Description 获得字段名对应的方法名
@@ -1540,11 +1884,16 @@ public class CommonServiceImpl implements CommonService {
         for(int j = 0;j < commonFieldInfoList.size();j++){
             // 字段信息
             CommonFieldInfo fieldInfo = commonFieldInfoList.get(j);
+            String columnName = fieldInfo.getColumnName();
             if(fieldInfo.isKey() && fieldInfo.isAutoIncrease()){
                 // 如果是id且自增长，则跳过
                 continue;
             }
-            columnSql.append(fieldInfo.getColumnName() + ",");
+            if(StringUtils.isBlank(columnName)){
+                // 没有字段注解，则跳过
+                continue;
+            }
+            columnSql.append(columnName + ",");
         }
         // 去除末尾多余逗号↓
         columnSql = this.cutEndComma(columnSql);
@@ -1565,10 +1914,15 @@ public class CommonServiceImpl implements CommonService {
         for(int i = 0;i < commonFieldInfoList.size();i++){
             // 字段信息
             CommonFieldInfo fieldInfo = commonFieldInfoList.get(i);
+            String columnName = fieldInfo.getColumnName();
             String getMethodName = fieldInfo.getGetMethodName();
             Object value = this.getValueByObjectAndMethodName(object,getMethodName);
             if(fieldInfo.isKey() && fieldInfo.isAutoIncrease()){
                 // 如果是id且自增长，则跳过
+                continue;
+            }
+            if(StringUtils.isBlank(columnName)){
+                // 没有字段注解，则跳过
                 continue;
             }
             // 转义
@@ -1601,6 +1955,10 @@ public class CommonServiceImpl implements CommonService {
             String getMethodName = fieldInfo.getGetMethodName();
             if(fieldInfo.isKey() || fieldInfo.equals(keyFieldInfo)){
                 // 跳过主键
+                continue;
+            }
+            if(StringUtils.isBlank(columnName)){
+                // 没有字段注解，则跳过
                 continue;
             }
             // 通过get方法获得值
@@ -1645,5 +2003,38 @@ public class CommonServiceImpl implements CommonService {
         }
 
         return commonFieldInfo;
+    }
+
+    /**
+     * 递归转换Map中的key为驼峰式命名
+     * @param convertedList 已转换的集合
+     * @param map map
+     * @return 转换后的map
+     */
+    private Map<String, Object> innerConvertMapKeyFromUnderlineToUpperCase(List<Object> convertedList, Map map){
+        convertedList.add(map);
+        Map<String,Object> newMap = new HashMap<>();
+        Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Object, Object> entry = iterator.next();
+            if(!(entry.getKey() instanceof String)){
+                // 跳过非String的key
+                continue;
+            }
+            String key = GlobalFunc.toString(entry.getKey());
+            Object value = entry.getValue();
+            String newKey = SqlUtil.convertToUppercase(key);
+            // 如果value是map，则递归转换
+            if(!convertedList.contains(value) && (value instanceof Map)){
+                Map valueMap = (Map) value;
+                value = this.innerConvertMapKeyFromUnderlineToUpperCase(convertedList, valueMap);
+            }
+            // 如果转换驼峰成功，且旧map有一个相同的key，比如原来的map就有user_id和userId，则抛出运行时异常
+            if(!key.equals(newKey) && map.containsKey(newKey)){
+                throw(new RuntimeException("转换驼峰失败，map中已存在名称为[" + newKey + "]的key！"));
+            }
+            newMap.put(newKey,value);
+        }
+        return newMap;
     }
 }
