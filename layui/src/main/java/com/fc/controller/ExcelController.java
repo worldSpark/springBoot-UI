@@ -6,6 +6,7 @@ import com.fc.model.MachineryInfoOrigin;
 import com.fc.model.common.MachineryInfo;
 import com.fc.util.*;
 import com.google.gson.Gson;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,12 +30,21 @@ import java.util.stream.Collectors;
  * @author: Mr.Wan
  * @create: 2021-03-29 11:32
  **/
+@Controller
+@RequestMapping("/excel")
 public class ExcelController {
+
+    //查询页面,里面有导入和下载模板导出等功能
+    @RequestMapping("/batchQuery")
+    public String batchQuery() {
+        return "common/batchQuery";
+    }
+
 
     //导入页面
     @RequestMapping("/doImportMachinery")
     public String doImportMachinery() {
-        return "views/modules/njmanage/doImportMachinery.jsp";
+        return "common/doImportMachinery";
     }
 
     //下载模板
@@ -146,6 +156,7 @@ public class ExcelController {
     public void doExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String sheetName="农机导出";
         String titleName="农机导出";
+        //即可以从前台传,也可以数据库获取
         String data = request.getParameter("data");
         List<Map<String,Object>> dataList = JSONObject.parseObject(data, List.class);
         for (Map<String, Object> map : dataList) {
@@ -184,7 +195,7 @@ public class ExcelController {
             map.put("iotNumber",iotNumber);
         }
         model.addAttribute("list",new Gson().toJson(maps));
-        return "views/modules/njmanage/doDetailsMachinery.jsp";
+        return "common/doDetailsMachinery";
     }
 
 
@@ -192,12 +203,12 @@ public class ExcelController {
         //根据id集合查询factory_number,iot_number,create_time
 //        List<MachineryInfoOrigin> machineryOrganiData = machineryInfoMapper.getMachineryOrganiData(machinery);
         List<MachineryInfoOrigin> machineryOrganiData = new ArrayList<>();
-        Map<String, Object> dateMap = new HashMap<>();
-
+        //排序且根据iotnumber去重
         machineryOrganiData = machineryOrganiData.stream()
                 .sorted((MachineryInfoOrigin mar1, MachineryInfoOrigin mar2) -> mar1.getCreateTime().compareTo(mar2.getCreateTime()))
                 .filter(distinctByKey((p) -> (p.getIotNumber())))
                 .collect(Collectors.toList());
+        //排序
         machineryOrganiData = machineryOrganiData.stream().sorted(Comparator.comparing(MachineryInfoOrigin::getCreateTime).reversed()).collect(Collectors.toList());
         Map<String, Long> collect = machineryOrganiData.stream().collect(Collectors.groupingBy(p -> p.getFactoryNumber(), Collectors.counting()));
 //                .collect(Collectors.groupingBy(p -> p.getFactoryNumber(), Collectors.counting()));

@@ -1,0 +1,23 @@
+<!-- 通用CSS -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="header(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <title th:text="${title}"></title>
+    <script th:src="@{/static/bootstrap/jquery-3.3.1.min.js}"></script>
+    <script th:src="@{/static/bootstrap/bootstrap.min.js}"></script>
+    <script th:src="@{/static/bootstrap/bootstrap-table.min.js}"></script>
+    <script th:src="@{/static/bootstrap/bootstrap-table-zh-CN.js}"></script>
+    <link th:href="@{/static/bootstrap/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/static/bootstrap/bootstrap-table.min.css}" rel="stylesheet">
+    <script th:src="@{/static/component/layui/layui.js}"></script>
+</head>
+
+<!-- 通用JS -->
+<div th:fragment="footer">
+    <script> let rootPath="[[${rootPath}]]";</script>
+</div>
+

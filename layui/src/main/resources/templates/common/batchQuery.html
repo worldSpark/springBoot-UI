@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title></title>
+</head>
+<th:block th:include="bootstrap :: header('获取接口')"/>
+
+<style>
+
+</style>
+
+<body>
+<div style="text-align: center;width: 95%;height: 100%;margin: 0 auto">
+    <h5>提示:</h5>
+    <h6>如有更换设备号面积会重新计算</h6>
+    <input type="text" id="factoryNumber" class="form-control" style="display: inline-block;width: 360px;" placeholder="出厂编号,查询多个用英文逗号拼接">
+    <button type="button" id="btn_query" class="btn btn-primary btn_prim" style="margin-left: 20px;" >查询</button>
+    <button type="button" id="btn_clear" class="btn btn-primary btn_prim" style="margin-left: 20px;" >清空</button>
+    <button type="button" class="btn btn-primary btn_prim" style="margin-left: 20px;" onclick="doImport()" >导入</button>
+    <button type="button" class="btn btn-primary btn_prim" style="margin-left: 20px;" onclick="doExcel()" >导出</button>
+
+    <div style="margin-top: 30px;">
+        <table id="table" style="white-space :nowrap;"></table>
+    </div>
+
+</div>
+
+</body>
+<script>
+    let MODULE_PATH = rootPath+"/ExcelController";
+
+    var $table = $('#table');
+    var facNumbers = [];
+    $(function(){
+        $table.bootstrapTable({
+            method: 'post',                          //请求方式（*）
+            // url: '/machinery/getMachineryData',         //请求后台的URL（*）
+            singleSelect: true,
+            striped: true,                          //是否显示行间隔色
+            cache: false,                           //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,                       //是否显示分页（*）
+            sortOrder: "asc",                       //排序方式
+            contentType: "application/x-www-form-urlencoded",
+            sidePagination: "client",               //分页方式：client客户端分页，server服务端分页（*）
+            pageNumber: 1,                          //初始化加载第一页，默认第一页
+            pageSize: 1000,
+            search: false,                          //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: false,                     //是否显示所有的列
+            showRefresh: false,                     //是否显示刷新按钮
+            minimumCountColumns: 2,                 //最少允许的列数
+            clickToSelect: true,                    //是否启用点击选中行
+            uniqueId: "ID",                         //每一行的唯一标识，一般为主键列
+            showToggle: false,                      //是否显示详细视图和列表视图的切换按钮
+            cardView: false,                        //是否显示详细视图
+            detailView: false,                      //是否显示父子表
+            queryParams: function () {
+                var factoryNumber = $("#factoryNumber").val();
+                if(factoryNumber!=null&&factoryNumber!=""){
+                    var facList = factoryNumber.split(",");
+                    for (let x of facList) {
+                        facNumbers.push(x);
+                    }
+                    facNumbers = Array.from(new Set(facNumbers));
+                }
+                console.log(facNumbers);
+                var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                    factoryNumbers: facNumbers.join(",")
+                };
+                return temp;
+            },//传递参数（*）
+            columns: [{
+                checkbox: true
+            },{
+                field: 'modelName',
+                title: '机具名称'
+            },{
+                field: 'factoryNumber',
+                title: '出厂编号'
+            }, {
+                field: 'iotNumber',
+                title: '物联网设备号'
+            }, {
+                field: 'workArea',
+                title: '作业面积',
+                formatter:function(value,row,index){
+                    if(value==null||value==""){
+                        return "0亩";
+                    }else {
+                        return Number(value).toFixed(2)+"亩";
+                    }
+                }
+            }, {
+                field: 'locationNum',
+                title: '轨迹点数'
+            },{
+                field: 'realName',
+                title: '购机者'
+            },{
+                field: 'compCode',
+                title: '数据源',
+                formatter:function(value,row,index){
+                    if(value=="360"){
+                        return "大田";
+                    }else {
+                        return "非大田";
+                    }
+                }
+            },{
+                field: 'tmState',
+                title: '状态',
+                formatter:function(value,row,index){
+                    if(value=="1"){
+                        return "未绑定物联网";
+                    }else if(value=="3"){
+                        return "正常";
+                    }else if(value=="2"){
+                        return "未绑定用户";
+                    }
+                }
+            },{
+                field: 'tab',
+                title: '补贴状态'
+            },{
+                field: 'replaced',
+                title: '更换过设备号'
+            },{
+                title: '操作',
+                formatter:function(value,row,index){
+                    var iotNumber = row.compCode+""+row.iotNumber;
+                    return "<button type=\"button\" class=\"btn btn-primary btn_prim\" onclick=\"doDetails('"+row.factoryNumber+"','"+iotNumber+"','"+row.machineryId+"')\" >详情</button>";
+                }
+            }]
+
+        });
+
+        //模糊查询
+        $("#btn_query").click(function(){
+            $table.bootstrapTable('refresh');
+        });
+
+        //清空
+        $("#btn_clear").click(function(){
+            $("#factoryNumber").val("");
+            facNumbers = [];
+            $table.bootstrapTable('refresh');
+        });
+
+
+    })
+
+    //导入
+    function doImport(){
+        layer.open({
+            title:"导入",
+            type:2,
+            content:MODULE_PATH+'/excel/doImportMachinery',
+            area: ['36%', '30%']
+            ,btnAlign: 'c' //按钮居中
+            ,shade: 0 //不显示遮罩
+            ,offset:'30px'
+        });
+    }
+
+    //导出
+    function doExcel(){
+        window.open("${ctx}/machinery/doExcel");
+    }
+
+    //详情
+    function doDetails(factoryNumber,iotNumber,machineryId){
+        layer.open({
+            title:"详情",
+            type:2,
+            content:'${ctx}/machinery/doDetailsMachinery?factoryNumber='+factoryNumber+"&iotNumber="+iotNumber+"&machineryId="+machineryId,
+            area: ['90%', '90%']
+            ,btnAlign: 'c' //按钮居中
+            ,shade: 0 //不显示遮罩
+            ,offset:'30px'
+        });
+    }
+</script>
+
+</html>
