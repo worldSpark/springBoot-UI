@@ -2,7 +2,7 @@ package com.fc.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.fc.model.MachineryInfoOrigin;
+import com.fc.model.common.MachineryInfoOrigin;
 import com.fc.model.common.MachineryInfo;
 import com.fc.util.*;
 import com.google.gson.Gson;
