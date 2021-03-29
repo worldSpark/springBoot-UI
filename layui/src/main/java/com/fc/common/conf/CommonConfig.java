@@ -58,4 +58,8 @@ public class CommonConfig {
     //------↑↑↑-----用户登陆锁定配置------↑↑↑-----//
     //redis用户菜单授权
     public static final String LOGIN_USER_RESOURCES_JURISDICTION = "RESOURCES";
+
+    public static final String FILE_ROOT_PATH = "D:\\upload";
+
+
 }
