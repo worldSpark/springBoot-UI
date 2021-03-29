@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title></title>
+    <th:block th:include="include :: header('全局配置')"/>
+    <script th:src="@{/static/js/LodopFuncs.js}"></script>
+
+    <object  id="LODOP_OB" classid="clsid:2105C259-1E0C-4534-8141-A753534CB4CA" width=0 height=0>
+        <embed id="LODOP_EM" type="application/x-print-lodop" width=0 height=0></embed>
+    </object>
+</head>
+
+<script>
+    var LODOP;
+    function createPrintPage() {
+        console.log(document.getElementById("thisDiv").innerHTML);
+        LODOP =getLodop (document.getElementById("LODOP"));
+        LODOP.PRINT_INITA(2, 0, "100%", "100%", "人物信息和轨迹详情");
+        LODOP.SET_PRINT_PAGESIZE(1,"100%","100%", "A4");
+        LODOP.ADD_PRINT_TABLE(20, 0, "100%", "100%",  document.getElementById("thisDiv").innerHTML);
+        LODOP.SET_PRINT_STYLEA(0,"FontSize",6);
+    }
+
+    //预览方法：
+    function print_view() {
+        createPrintPage();
+        setTimeout(function(){
+            LODOP.PREVIEW();
+            if (LODOP.CVERSION) {
+                LODOP.On_Return=function(TaskID,Value){
+                    back();
+                };
+            };
+        },1000000);
+    }
+
+    //打印维护：
+    function print_setup() {
+        createPrintPage();
+        LODOP.PRINT_SETUP();
+    }
+
+    //打印设计：
+    function print_design() {
+        createPrintPage();
+        LODOP.PRINT_DESIGN();
+    }
+
+    //直接打印
+    function myPrint1() {
+        createPrintPage();
+        setTimeout(function(){
+            LODOP.PRINT();
+            LODOP.On_Return=function(TaskID,Value){
+                back();
+            };
+        },1000);
+    }
+
+    function back(){
+        window.close();
+    }
+
+</script>
+<body onload="myPrint1()">
+<div id="thisDiv" class="centerdiv" style="height: 100%;width: 100%;" class="infodiv">
+    <table width="99%" border="0" align="center" cellpadding="0" cellspacing="0"
+           style="font-size: 16px;font-family: 宋体;margin-left: 50px;">
+        <tr>
+            <td colspan="5" align="center" >
+                <div class="infotitle" style="margin-top: 30px;margin-right: 100px;">
+                    购机者信息
+                </div>
+                <p>
+                <hr>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                购机者：${info.realName}
+            </td>
+            <td colspan="2">
+                证件号：${info.ownerIdcard}
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                所属区域：${info.regionName}
+            </td>
+            <td ></td>
+            <td></td>
+            <td>                <hr>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5" align="center">
+                <div class="infotitle" style="margin-top: 30px;margin-right: 100px;">
+                    农机信息
+                </div>
+                <p>                <hr>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5">
+                生产企业：${info.companyName}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5">机具名称：${info.dicName}</td>
+        </tr>
+        <tr>
+            <td colspan="5">机具型号：${info.machineryModel}</td>
+        </tr>
+        <tr>
+            <td colspan="5">出厂编号：${info.factoryNumber}</td>
+        </tr>
+        <tr>
+            <td colspan="5">设备号：${info.iotNumber}
+            </td>
+        </tr>
+        <td colspan="5" align="center">
+            <div class="infotitle" style="margin-top: 30px;margin-right: 100px;">
+                作业信息
+            </div>
+            <p>                <hr>
+            </p>
+        </td>
+        <tr>
+            <td colspan="2">有轨迹天数：${info.totalWorkTime}</td>
+            <td colspan="2">作业总面积：${info.totalArea}</td>
+            <td>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+
+</html>
