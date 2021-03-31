@@ -1,0 +1,62 @@
+<!-- 通用CSS -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="header(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <title th:text="${title}"></title>
+    <script> let rootPath="[[${rootPath}]]";</script>
+    <script type="text/javascript" th:src="@{/static/easyui/jquery/jquery-1.11.1.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jquery-easyui-1.3.6/jquery.easyui.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jquery-easyui-1.3.6/locale/easyui-lang-zh_CN.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.progressbar.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.slider.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.linkbutton.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.form.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.validatebox.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.combo.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.combobox.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.menu.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.searchbox.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.panel.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.window.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.dialog.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.layout.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.tree.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.datagrid.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.treegrid.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.combogrid.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.combotree.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.tabs.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.theme.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/icons/jeasyui.icons.all.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.icons.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.extensions.gridselector.js?v=1.0}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jeasyui.selectionBoxes.js?v=1.0}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jquery.toolbar.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jquery.comboicons.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jquery.comboselector.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/jquery.portal.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/jeasyui-extensions/datagrid-detailview.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/common/plugin-import.js}"></script>
+
+    <script type="text/javascript" th:src="@{/static/easyui/js/searchJs.js?v=1.0}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/js/commonUtil.js?v=1.1}"></script>
+    <script type="text/javascript" th:src="@{/static/js/layer.js}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/js/commonCheckBox.js?v=1.1}"></script>
+    <script type="text/javascript" th:src="@{/static/easyui/js/commonSwitchButton.js}"></script>
+    <link rel="stylesheet" th:href="@{/static/easyui/jquery-easyui-theme/bootstrap/easyui.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/jquery-easyui-theme/icon.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/icons/icon-all.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/css/searchStyle.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/css/operation.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/static/easyui/css/common-switch-button.css}" />
+    <style type="text/css"> .dialog-button { padding: 5px;} </style>
+
+</head>
+
+

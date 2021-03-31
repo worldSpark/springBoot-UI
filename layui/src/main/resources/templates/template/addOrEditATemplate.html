@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<th:block th:include="easyui :: header('通用模板')"/>
+<head >
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script>
+        // 文件上传id
+        var mainId;
+
+        /**
+         * 保存方法
+         * @param tableId 父页面表格id
+         * @param layerIndex 父页面layer窗口index
+         */
+        function save(tableId, layerIndex){
+            var id = $("#id").val();
+            var normalInput = $("#normal_input").val();
+            var intInput = $("#int_input").val();
+            var intInputStart = $("#int_input_start").val();
+            var intInputEnd = $("#int_input_end").val();
+            var dateInputY = $("#date_input_y").combobox("getValue");
+            var dateInputYM = $("#date_input_ym").datebox("getValue");
+            var dateInputYMD = $("#date_input_ymd").datebox("getValue");
+            var dateInputYMDHMS = $("#date_input_ymdhms").datetimebox("getValue");
+            var dateInputStart = $("#date_input_start").datebox("getValue");
+            var dateInputEnd = $("#date_input_end").datebox("getValue");
+            var normalSingleSelect = $("#normal_single_select").combobox("getValue");
+            var normalMultipleSelect = $("#normal_multiple_select").combobox("getValues").join(",");
+            var dynamicNormalMultipleSelect = $("#dynamic_normal_multiple_select").combobox("getValues").join(",");
+            var enabled = $("#enabled").prop("checked") ? "是" : "否";
+            var pkWpUser = $("#pk_wp_user").val();
+            var pkWpDepartment = $("#pk_wp_department").val();
+            var normalSingleCheck = commonCheckBox.getValues($("[name='normal_single_check']")).join(",");
+            var normalMultipleCheck = commonCheckBox.getValues($("[name='normal_multiple_check']")).join(",");
+            var groupNormalMultipleCheck = commonCheckBox.getValues($("[name='group_normal_multiple_check']")).join(",");
+            var normalTextarea = $("#normal_textarea").val();
+
+            // 检查必填项
+            if(!normalInput){
+                layer.tips("请填写值！", $("#normal_input"), {tips: 2});
+                $("#normal_input").focus();
+                return false;
+            }
+
+            // 检查不能重复
+            var isRepeat = false;
+            $.ajax({
+                url: "/template/aTemplate/checkRepeat",
+                type: "post",
+                async: false, // 开启同步
+                data:{
+                    id: id,
+                    normalInput: normalInput
+                },
+                dataType: "json",
+                success: function(data){
+                    isRepeat = data;
+                }
+            });
+            if(isRepeat){
+                layer.tips("普通输入框不能重复！", $("#normal_input"), {tips: 2});
+                return false;
+            }
+
+            // 父页面loading层
+            var loadIndex = window.parent.commonLayerLoading();
+            $.ajax({
+                url: "/template/aTemplate/save",
+                type: "post",
+                data:{
+                    id: id,
+                    normalInput: normalInput,
+                    intInput: intInput,
+                    intInputStart: intInputStart,
+                    intInputEnd: intInputEnd,
+                    dateInputY: dateInputY,
+                    dateInputYM: dateInputYM,
+                    dateInputYMD: dateInputYMD,
+                    dateInputYMDHMS: dateInputYMDHMS,
+                    dateInputStart: dateInputStart,
+                    dateInputEnd: dateInputEnd,
+                    normalSingleSelect: normalSingleSelect,
+                    normalMultipleSelect: normalMultipleSelect,
+                    dynamicNormalMultipleSelect: dynamicNormalMultipleSelect,
+                    enabled: enabled,
+                    pkWpUser: pkWpUser,
+                    pkWpDepartment: pkWpDepartment,
+                    normalSingleCheck: normalSingleCheck,
+                    normalMultipleCheck: normalMultipleCheck,
+                    groupNormalMultipleCheck: groupNormalMultipleCheck,
+                    normalTextarea: normalTextarea,
+                    mainId: mainId
+                },
+                dataType: "json",
+                success: function(data){
+                    var result = data["result"];
+                    var message = data["message"];
+                    // 父页面提示
+                    window.parent.layer.msg(message);
+                    if(result == "success"){
+                        // 刷新表格
+                        if(tableId){
+                            window.parent.$("#" + tableId).datagrid("reload");
+                        }
+                        // 延时关闭loading
+                        window.parent.commonLayerClose(loadIndex, 100);
+                        // 关闭layer
+                        if(layerIndex){
+                            window.parent.layer.close(layerIndex);
+                        }
+                    }else{
+                        // 关闭loading
+                        window.parent.commonLayerClose(loadIndex);
+                    }
+                },
+                error: function(){
+                    // 关闭loading
+                    window.parent.commonLayerClose(loadIndex);
+                    layer.msg("操作失败！");
+                }
+            });
+        }
+
+        $(function(){
+            // 整数输入框，控制在0-99之间
+            onlyNumber("#int_input", 0, 99);
+            // 整数输入框，联动，控制在-99与99之间
+            onlyNumberBetween("#int_input_start", "#int_input_end", -99, 99);
+            // 年
+            // 前三年
+            var yearList = new Array();
+            var currentYear = new Date().getFullYear();
+            yearList.push({"text": currentYear - 2});
+            yearList.push({"text": currentYear - 1});
+            yearList.push({"text": currentYear});
+            $("#date_input_y").combobox({
+                textField: "text",
+                valueField: "text",
+                multiple: false,
+                editable: false,// 不可编辑
+                data: yearList,
+                onLoadSuccess: function () {
+
+                },
+                onSelect: function () {
+
+                }
+            });
+            // 年月
+            commonDateMonthBox("date_input_ym");
+            // 日期左右联动
+            setDateBoxBetween("#date_input_start", "#date_input_end");
+            // 下拉单选框
+            $("#normal_single_select").combobox({
+                textField: "text",
+                valueField: "value",
+                multiple: false,
+                editable: false,// 不可编辑
+                data: [
+                    {"text": "男", "value": "1"},
+                    {"text": "女", "value": "2"}
+                ],
+                onLoadSuccess: function () {
+                    // 加载成功后，如果没有值，则默认选中第一个
+                    var oldValue = $(this).combobox("getValue");
+                    if(!oldValue){
+                        var data = $(this).combobox("getData");
+                        var firstValue = data[0]["value"];
+                        $(this).combobox("setValue",firstValue);
+                    }
+                },
+                onSelect: function () {
+
+                }
+            });
+            // 下拉多选框
+            $("#normal_multiple_select").combobox({
+                textField: "text",
+                valueField: "value",
+                multiple: true,
+                editable: false,// 不可编辑
+                data: [
+                    {"text": "张三", "value": "1"},
+                    {"text": "李四", "value": "2"},
+                    {"text": "王五", "value": "3"}
+                ],
+                onLoadSuccess: function () {
+                    // 回显
+                    var normalMultipleSelect = "${aTemplate.normalMultipleSelect}";
+                    if(normalMultipleSelect){
+                        $("#normal_multiple_select").combobox("setValues", normalMultipleSelect.split(","));
+                    }
+                },
+                onSelect: function () {
+
+                }
+            });
+            // 动态下拉多选框
+            $("#dynamic_normal_multiple_select").combobox({
+                valueField: "id",
+                textField: "value",
+                url: "/template/aTemplate/getDynamicData",
+                multiple: true,
+                editable: false,// 不可编辑
+                onLoadSuccess: function () {
+                    // 回显
+                    var dynamicNormalMultipleSelect = "${aTemplate.dynamicNormalMultipleSelect}";
+                    if(dynamicNormalMultipleSelect){
+                        $("#dynamic_normal_multiple_select").combobox("setValues", dynamicNormalMultipleSelect.split(","));
+                    }
+                },
+                onSelect: function () {
+
+                }
+            });
+            // 实例化部门选择框，多选，调用父页面
+            initCommonDeptSelect($("#pk_wp_department"), {
+                isSingle: false,
+                parentLayer: true
+            });
+            // 实例化人员选择框，多选，调用父页面
+            initCommonUserSelect($("#pk_wp_user"), {
+                isSingle: false,
+                parentLayer: true,
+                showTypes: "部门,角色,全部人员,在线人员"
+            });
+            // 实例化复选框
+            commonCheckBox.init("[name='normal_single_check'],[name='normal_multiple_check'],[name='group_normal_multiple_check']");
+            // 实例化开关
+            commonSwitchButton.init("[name='enabled']");
+            // 复选框回显
+            var normalSingleCheck = "${aTemplate.normalSingleCheck}";
+            var normalMultipleCheck = "${aTemplate.normalMultipleCheck}";
+            var groupNormalMultipleCheck = "${aTemplate.groupNormalMultipleCheck}";
+            commonCheckBox.setValues($("[name='normal_single_check']"), normalSingleCheck);
+            commonCheckBox.setValues($("[name='normal_multiple_check']"), normalMultipleCheck);
+            commonCheckBox.setValues($("[name='group_normal_multiple_check']"), groupNormalMultipleCheck);
+            // 实例化附件上传（不预先生成id，先用自动生成的关联id，保存后再更新成真实的实体id，所以这里的mainId需要传递到后台更新，当然也可以用预先生成id的方式）
+            mainId = initCommonFileUpload($("#file_upload"), {
+                mainId: $("#id").val(),
+                parentLayer: true,
+                maxFileCount: 3
+            });
+        });
+    </script>
+</head>
+<body>
+<input type="hidden" id="id" value="${aTemplate.id}">
+<table width="95%" class="common_model_table" style="height:auto; margin: 0 auto;">
+    <tr>
+        <td width="18%" style="text-align: right;" nowrap="nowrap">普通输入框：</td>
+        <td width="32%">
+            <input id="normal_input" name="normal_input" type="text" value="${aTemplate.normalInput}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[normalInput]'/>" />
+        </td>
+        <td width="18%" style="text-align: right;" nowrap="nowrap">整数输入框：</td>
+        <td width="32%">
+            <input id="int_input" name="int_input" type="text" value="${aTemplate.intInput}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[intInput]'/>" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">整数输入框开始：</td>
+        <td>
+            <input id="int_input_start" name="int_input_start" type="text" value="${aTemplate.intInputStart}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[intInputStart]'/>" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">整数输入框结束：</td>
+        <td>
+            <input id="int_input_end" name="int_input_end" type="text" value="${aTemplate.intInputEnd}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[intInputEnd]'/>" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">年：</td>
+        <td>
+            <input id="date_input_y" name="date_input_y" type="text" class="" value="${aTemplate.dateInputY}" style="height: 28px; width: 171px;" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[dateInputY]'/>" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">年月：</td>
+        <td>
+            <input id="date_input_ym" name="date_input_ym" type="text" class="" value="${aTemplate.dateInputYM}" style="height: 28px; width: 171px;" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[dateInputYM]'/>" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">年月日：</td>
+        <td>
+            <input id="date_input_ymd" name="date_input_ymd" type="text" class="easyui-datebox common-datebox-check" value="${aTemplate.dateInputYMD}" style="height: 28px; width: 171px;" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">年月日时分秒：</td>
+        <td>
+            <input id="date_input_ymdhms" name="date_input_ymdhms" type="text" class="easyui-datetimebox common-datetimebox-check" value="${aTemplate.dateInputYMDHMS}" style="height: 28px; width: 171px;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">日期输入框开始：</td>
+        <td>
+            <input id="date_input_start" name="date_input_start" class="common-datebox-check" type="text" value="${aTemplate.dateInputStart}" style="height: 28px; width: 171px;" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">日期输入框结束：</td>
+        <td>
+            <input id="date_input_end" name="date_input_end" class="common-datebox-check" type="text" value="${aTemplate.dateInputEnd}" style="height: 28px; width: 171px;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">下拉单选框：</td>
+        <td>
+            <input id="normal_single_select" name="normal_single_select" type="text" value="${aTemplate.normalSingleSelect}" style="height: 28px; width: 171px;" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">下拉多选框：</td>
+        <td>
+            <input id="normal_multiple_select" name="normal_multiple_select" type="text" value="" style="height: 28px; width: 171px;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">动态下拉多选框：</td>
+        <td>
+            <input id="dynamic_normal_multiple_select" name="dynamic_normal_multiple_select" value="" type="text" style="height: 28px; width: 171px;" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">是否启用：</td>
+        <td>
+            <input id="enabled" name="enabled" type="checkbox" <c:if test="${aTemplate.enabled != '否'}">checked="checked"</c:if> />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">部门选择框：</td>
+        <td>
+            <input id="pk_wp_department" name="pk_wp_department" type="text" value="${aTemplate.pkWpDepartment}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[pkWpDepartment]'/>" />
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">人员选择框：</td>
+        <td>
+            <input id="pk_wp_user" name="pk_wp_user" type="text" value="${aTemplate.pkWpUser}" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[pkWpUser]'/>" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">单选框：</td>
+        <td>
+            <label>
+                <input name="normal_single_check" type="checkbox" group="normal_single_check" sub_group="a" value="1">
+                <span>单选1</span>
+            </label>
+            <label>
+                <input name="normal_single_check" type="checkbox" group="normal_single_check" sub_group="b" value="2">
+                <span>单选2</span>
+            </label>
+            <label>
+                <input name="normal_single_check" type="checkbox" group="normal_single_check" sub_group="c" value="3">
+                <span>单选3</span>
+            </label>
+        </td>
+        <td style="text-align: right;" nowrap="nowrap">多选框：</td>
+        <td>
+            <label>
+                <input name="normal_multiple_check" type="checkbox" group="normal_multiple_check" value="1">
+                <span>多选1</span>
+            </label>
+            <label>
+                <input name="normal_multiple_check" type="checkbox" group="normal_multiple_check" value="2">
+                <span>多选2</span>
+            </label>
+            <label>
+                <input name="normal_multiple_check" type="checkbox" group="normal_multiple_check" value="3">
+                <span>多选3</span>
+            </label>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">分组多选框：</td>
+        <td colspan="3">
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="a" value="1">
+                <span>A组1</span>
+            </label>
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="a" value="2">
+                <span>A组2</span>
+            </label>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="b" value="3">
+                <span>B组1</span>
+            </label>
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="b" value="4">
+                <span>B组2</span>
+            </label>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="c" value="5">
+                <span>C组1</span>
+            </label>
+            <label>
+                <input name="group_normal_multiple_check" type="checkbox" group="group_normal_multiple_check" sub_group="c" value="6">
+                <span>C组2</span>
+            </label>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right; vertical-align: top;" nowrap="nowrap">文本框：</td>
+        <td colspan="3" >
+            <textarea id="normal_textarea" name="normal_textarea" type="text" style="width: 550px; height: 60px;" max_length="<model:length value='com.ncxdkj.model.template.ATemplate[normalTextarea]'/>" >${aTemplate.normalTextarea}</textarea>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" nowrap="nowrap">附件：</td>
+        <td colspan="3" >
+            <input id="file_upload" type="text">
+        </td>
+    </tr>
+</table>
+</body>
+</html>

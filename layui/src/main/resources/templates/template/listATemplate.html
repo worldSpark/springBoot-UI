@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head >
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<th:block th:include="easyui :: header('通用模板')"/>
+<body>
+<script type="text/javascript">
+    $.util.namespace("$.easyui");
+    $(function(){
+        var cookieTheme = $.cookie("themeName");
+        $.easyui.theme(cookieTheme);
+        var t = $("#listATemplateDataGrid").datagrid({
+            title: "",//datagrid标题
+            method: "post",
+            url : "/template/aTemplate/getATemplateList",
+            idField: "id",//是否跨页仍然记住选中的行
+            remoteSort: false,
+            pageSize:10,//每页显示几条数据
+            pageList:[10,20,30,40,50,60,70,80,90,100],//可选中每页显示的条数
+            fit:true,//自适应屏幕宽高
+            fitColumns:true,//字段平铺
+            border:false,
+            pagination: true,
+            singleSelect:true,
+            toolbar : [
+                {
+                    id : "toolbar_add",
+                    text : "新增(弹窗)",
+                    iconCls : "icon-add",
+                    handler : function(){
+                        addOrEditATemplate();
+                    }
+                },
+                {
+                    id : "rightbtn_edit",
+                    text : "修改(弹窗)",
+                    iconCls : "icon-edit",
+                    handler : function(){
+                        var rowData = $("#listATemplateDataGrid").datagrid("getSelected");
+                        if(rowData == null){
+                            layer.msg("请选择需要修改的数据！");
+                            return false;
+                        }else{
+                            addOrEditATemplate(rowData["id"]);
+                        }
+                    }
+                },{
+                    id : "toolbar_add",
+                    text : "新增(跳转)",
+                    iconCls : "icon-add",
+                    handler : function(){
+                        addOrEditATemplateSecondWay();
+                    }
+                },
+                {
+                    id : "rightbtn_edit",
+                    text : "修改(跳转)",
+                    iconCls : "icon-edit",
+                    handler : function(){
+                        var rowData = $("#listATemplateDataGrid").datagrid("getSelected");
+                        if(rowData == null){
+                            layer.msg("请选择需要修改的数据！");
+                            return false;
+                        }else{
+                            addOrEditATemplateSecondWay(rowData["id"]);
+                        }
+                    }
+                },
+                {
+                    id : "toolbar_del",
+                    text : "删除",
+                    iconCls : "icon-add",
+                    handler : function(){
+                        var rowData = $("#listATemplateDataGrid").datagrid("getSelected");
+                        if(rowData == null){
+                            layer.msg("请选择需要删除的数据！");
+                            return false;
+                        }else{
+                            deleteATemplate(rowData["id"]);
+                        }
+                    }
+                },
+                {
+                    id : "toolbar_file",
+                    text : "上传附件",
+                    iconCls : "icon-file",
+                    handler : function(){
+                        var rowData = $("#listATemplateDataGrid").datagrid("getSelected");
+                        if(rowData == null){
+                            layer.msg("请选择需要上传附件的数据！");
+                            return false;
+                        }else{
+                            addFile(rowData["id"]);
+                        }
+                    }
+                },
+                {
+                    id : "toolbar_refresh_schedule",
+                    text : "WebSocket：刷新待办",
+                    iconCls : "icon-file",
+                    handler : function(){
+                        // loading层
+                        var loadIndex = commonLayerLoading();
+                        $.ajax({
+                            url: "/template/aTemplate/refreshSchedule",
+                            type: "post",
+                            success: function(data){
+                                layer.msg(data["message"]);
+                                // 延时关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            },
+                            error: function(){
+                                layer.msg("操作失败！");
+                                // 关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            }
+                        });
+                    }
+                }
+            ],
+            frozenColumns: [[
+                { field: "ck", checkbox: true }
+            ]],
+            columns: [[
+                {field: "id", title: "id", hidden: true},
+                {field: "normalInput", title: "普通输入框", width: 100, sortable: true, align: "center"},
+                {field: "intInput", title: "整数输入框", width: 100, sortable: true, align: "center"},
+                {field: "intInputStart", title: "整数输入框开始", width: 100, sortable: true, align: "center"},
+                {field: "intInputEnd", title: "整数输入框结束", width: 100, sortable: true, align: "center"},
+                {field: "dateInputStart", title: "日期输入框开始", width: 100, sortable: true, align: "center"},
+                {field: "dateInputEnd", title: "日期输入框结束", width: 100, sortable: true, align: "center"},
+                {field: "enabled", title: "是否启用", width: 100, sortable: true, align: "center", formatter: function(value, row){
+                    var switchHtml;
+                    if(value != "否"){
+                        switchHtml = "<input name='enabled' type='checkbox'"
+                            + " title='是' template_id='" + row["id"] + "' name='enabled' onchange='changeStatus(this)' checked='checked' />";
+                    }else{
+                        switchHtml = "<input name='enabled' type='checkbox'"
+                            + " title='否' template_id='" + row["id"] + "' name='enabled' onchange='changeStatus(this)' />";
+                    }
+                    return switchHtml;
+                }}
+            ]],
+            rowContextMenu: [
+                {
+                    id: "rightbtn_edit",
+                    text: "修改(弹窗)",
+                    iconCls: "icon-context-edit",
+                    handler: function (e, index,row) {
+                        addOrEditATemplate(row["id"]);
+                    }
+                },
+                { id: "toolbar_xin",
+                    text: "新增(弹窗)",
+                    iconCls: "icon-context-add",
+                    handler: function (e, index,row) {
+                        addOrEditATemplate();
+                    }
+                },
+                {
+                    id: "rightbtn_edit",
+                    text: "修改(跳转)",
+                    iconCls: "icon-context-edit",
+                    handler: function (e, index,row) {
+                        addOrEditATemplateSecondWay(row["id"]);
+                    }
+                },
+                { id: "toolbar_xin",
+                    text: "新增(跳转)",
+                    iconCls: "icon-context-add",
+                    handler: function (e, index,row) {
+                        addOrEditATemplateSecondWay();
+                    }
+                },
+                { id: "toolbar_del",
+                    text: "删除",
+                    iconCls: "icon-context-del",
+                    handler: function (e, index,row) {
+                        deleteATemplate(row["id"]);
+                    }
+                },
+                { id: "toolbar_file",
+                    text: "上传附件",
+                    iconCls: "icon-context-file",
+                    handler: function (e, index,row) {
+                        addFile(row["id"]);
+                    }
+                }
+            ],
+            autoFocusField: "",
+            autoEditing: false,             //该属性启用双击行时自定开启该行的编辑状态
+            extEditing: true,               //该属性启用行编辑状态的 ExtEditing 风格效果，该属性默认为 true。
+            singleEditing: true,            //该属性启用datagrid的只允许单行编辑效果，该属性默认为 true。
+            onLoadSuccess:function(data){   //加载完成后执行方法
+                /* 实例化开关 */
+                commonSwitchButton.init("[name='enabled'][template_id]");
+            }
+        });
+
+        //查询方法
+        $.easyui.search = function(){
+            $("#listATemplateDataGrid").datagrid("load",{
+                searchNormalInput : $("#search_normal_input").val(),
+                searchNormalSingleSelect : $("#search_normal_single_select").combobox("getValue"),
+                searchIntInputStart : $("#search_int_input_start").val(),
+                searchIntInputEnd : $("#search_int_input_end").val(),
+                searchDateInputYMDStart : $("#search_date_input_ymd_start").datebox("getValue"),
+                searchDateInputYMDEnd : $("#search_date_input_ymd_end").datebox("getValue")
+            });
+        };
+
+        //清空查询条件
+        $.easyui.clean = function(){
+            $("#listATemplateDataGrid").datagrid("load",{});
+            $("#search_normal_input").val("");
+            $("#search_normal_single_select").combobox("setValue", "");
+            $("#search_int_input_start").val("");
+            $("#search_int_input_end").val("");
+            $("#search_date_input_ymd_start").datebox("setValue", "");
+            $("#search_date_input_ymd_end").datebox("setValue", "");
+        };
+    });
+
+    /**
+     * 新增或修改数据(弹窗)
+     * @param id 数据id
+     */
+    function addOrEditATemplate(id) {
+        if(typeof(id) == "undefined"){
+            id = "";
+        }
+        // 标题
+        var title = id ? "修改" : "新增";
+        var url = "/template/aTemplate/addOrEditATemplate?id=" + id;
+
+        // 自适应高度
+        var height = 600;
+        var bodyHeight = $("body").height();
+        if(height > bodyHeight){
+            height = bodyHeight - 10;
+        }
+
+        var layerIndex = layer.open({
+            type: 2,
+            title: title,
+            area: ["800px", height + "px"], // 宽高
+            content:url,
+            btn: ["保存", "关闭"],
+            shade: 0.2, // 显示遮罩
+            yes: function(index, obj){
+                var iframeWin = window[obj.find("iframe")[0]["name"]];
+                // 触发子页面保存方法
+                iframeWin.save("listATemplateDataGrid", layerIndex);
+            }
+        });
+    }
+
+    /**
+     * 新增或修改数据(跳转)
+     * @param id 数据id
+     */
+    function addOrEditATemplateSecondWay(id) {
+        if(typeof(id) == "undefined"){
+            id = "";
+        }
+        var url = "/template/aTemplate/addOrEditATemplateSecondWay?id=" + id;
+        window.location.href = url;
+    }
+
+    // 删除数据
+    function deleteATemplate(id){
+        layer.confirm("您确定要删除该条数据吗？", {
+            id: "confirm_window",
+            btn: ["确定", "取消"] //按钮
+        }, function () {
+            // loading层
+            var loadIndex = commonLayerLoading();
+            $.ajax({
+                url: "/template/aTemplate/delete",
+                type: "post",
+                data:{
+                    id: id
+                },
+                dataType: "json",
+                success: function(data){
+                    layer.msg(data["message"]);
+                    // 刷新页面，清除选中
+                    $("#listATemplateDataGrid").datagrid("reload");
+                    $("#listATemplateDataGrid").datagrid("clearSelections");
+                    // 延时关闭loading
+                    commonLayerClose(loadIndex, 100);
+                },
+                error: function(){
+                    layer.msg("操作失败！");
+                    // 关闭loading
+                    commonLayerClose(loadIndex, 100);
+                }
+            });
+        });
+    }
+
+    // 上传附件
+    function addFile(id){
+        // 第一种方式，自己打开窗口，url自己拼接参数，更多参数请参考CommonFileUploadConfig
+        layer.open({
+            type: 2,
+            title: "上传附件",
+            area: [900, 480], // 宽高
+            content: "/common/commonFileUpload/addUpload?mainId=" + id
+            + "&maxFileCount=3"
+            + "&beforeCloseWindow=afterAddFile()"
+        });
+    }
+
+    // 文件上传关闭前回调函数
+    function afterAddFile(){
+        layer.msg("文件上传关闭前回调函数");
+    }
+
+    /**
+     * 改变状态
+     * @param obj 开关对象
+     */
+    function changeStatus(obj){
+        // 数据id
+        var id = $(obj).attr("template_id");
+        // 当前状态
+        var enabled = $(obj).prop("checked") ? "是" : "否";
+        // 取消行选中
+        $("#listATemplateDataGrid").datagrid("clearSelections");
+        // loading层
+        var loadIndex = commonLayerLoading();
+        $.ajax({
+            url: "/template/aTemplate/changeStatus",
+            type: "post",
+            data:{
+                id: id,
+                enabled: enabled
+            },
+            dataType: "json",
+            success: function(data){
+                layer.msg(data["message"]);
+                // 关闭loading
+                commonLayerClose(loadIndex, 100);
+            },
+            error: function(){
+                layer.msg("操作失败！");
+                // 关闭loading
+                commonLayerClose(loadIndex, 100);
+            }
+        });
+    }
+
+    $(function(){
+        // 查询控制
+        onlyNumberBetween("#search_int_input_start", "#search_int_input_end", -99, 99);
+        setDateBoxBetween("#search_date_input_ymd_start", "#search_date_input_ymd_end");
+        $("#search_normal_single_select").combobox({
+            textField: "text",
+            valueField: "value",
+            multiple: false,
+            editable: false,// 不可编辑
+            data: [
+                {"text": "男", "value": "1"},
+                {"text": "女", "value": "2"}
+            ],
+            onLoadSuccess: function () {
+
+            },
+            onSelect: function () {
+
+            }
+        });
+    });
+</script>
+<div class="easyui-layout" data-options="fit : true,border : false">
+    <div class="search_area" style="height: 68px;" data-options="region: 'north', split: true,border:true,title:'过滤条件'">
+        <table width="500px" cellpadding="0" cellspacing="0" border="0">
+            <tr class="normal_search_tr_area">
+                <td nowrap="nowrap" width="5%">普通输入框：</td>
+                <td nowrap="nowrap" width="28%">
+                    <input type="text" id="search_normal_input"/>
+                </td>
+                <td nowrap="nowrap" width="5%" style="text-align: right;">下拉单选框：</td>
+                <td nowrap="nowrap" width="28%">
+                    <input type="text" id="search_normal_single_select" style="width: 196px; height: 26px;"/>
+                </td>
+                <td nowrap="nowrap" width="34%">
+                    <button onclick="$.easyui.search();">查询</button>
+                    <button onclick="$.easyui.clean();">清空</button>
+                    <button>高级查询</button>
+                </td>
+            </tr>
+            <tr class="senior_search_tr_area search_hide">
+                <td nowrap="nowrap">整数输入框：</td>
+                <td nowrap="nowrap">
+                    <input type="text" id="search_int_input_start" style="width: 82px;"/>
+                    <span>-</span>
+                    <input type="text" id="search_int_input_end" style="width: 82px;"/>
+                </td>
+                <td nowrap="nowrap" style="text-align: right;">年　月　日：</td>
+                <td nowrap="nowrap">
+                    <input type="text" id="search_date_input_ymd_start" style="width: 90px; height: 26px;"/>
+                    <span>-</span>
+                    <input type="text" id="search_date_input_ymd_end" style="width: 90px; height: 26px;"/>
+                </td>
+                <td nowrap="nowrap"></td>
+            </tr>
+        </table>
+    </div>
+    <div data-options="region:'center',border:false" >
+        <table id="listATemplateDataGrid" ></table>
+    </div>
+</div>
+</body>
+</html>

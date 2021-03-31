@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>文件上传</title>
+    <th:block th:include="easyui :: header('通用模板')"/>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            text-decoration: none;
+            /*outline: 1px solid;*/
+        }
+        .common_file_upload_button{
+            width: auto;
+            height: 30px;
+            line-height: 30px;
+            color: var(--witip_color);
+            background: white;
+            border: 1px solid var(--witip_color);
+            cursor: pointer;
+            padding: 0 12px;
+            margin-top: 5px;
+            margin-left: 4px;
+            border-radius: 2px;
+        }
+        .common_file_upload_button:hover{
+            background: var(--witip_color);
+            color: white;
+            box-shadow: 0 0 4px #CCCCCC;
+        }
+        .common_file_upload_button:focus{
+            outline: none;
+        }
+        /* 停用按钮 */
+        .common_file_upload_button_disabled{
+            color: #808080;
+            border: 1px solid #808080;
+        }
+        .common_file_upload_button_disabled:hover{
+            background: #808080;
+            color: white;
+            box-shadow: 0 0 4px #CCCCCC;
+        }
+        .file_list_window{
+            width: 100%;
+            height: calc(100% - 43px);
+            overflow-y: auto;
+            position: relative;
+        }
+        .file_list_background{
+            width: 100%;
+            height: 100%;
+            background: whitesmoke;
+            text-align: center;
+            line-height: 100%;
+            font-size: 46px;
+            color: #9b9b9b;
+            font-family: "Microsoft YaHei";
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .file_list{
+            width: 100%;
+            height: calc(100% - 20px);
+            padding-bottom: 20px;
+            background: whitesmoke;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            display: none;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        /* 文字不可选中 */
+        .un_selectable{
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            -ms-user-select:none;
+            user-select:none;
+        }
+        .show_file_count{
+            display: inline-block;
+            float: right;
+            line-height: 40px;
+            margin-right: 8px;
+            color: #4a4a4a;
+        }
+        .file_obj{
+            width: 200px;
+            height: 200px;
+            float: left;
+            overflow: hidden;
+            border: 1px solid #CCCCCC;
+            background: white;
+            z-index: 100;
+            margin: 8px 0 0 8px;
+            /*cursor: pointer;*/
+            position: relative;
+        }
+        .file_obj:hover{
+            border-color: grey;
+            box-shadow: 0 0 4px #CCCCCC;
+        }
+        .file_ext_name{
+            width: 100%;
+            height: 119px;
+            text-align: center;
+            line-height: 120px;
+            font-size: 22px;
+            font-family: "Microsoft YaHei";
+            border-bottom: 1px solid #CCCCCC;
+        }
+        .file_img_preview{
+            width: 100%;
+            height: 119px;
+            border-bottom: 1px solid #CCCCCC;
+            text-align: center;
+        }
+        .file_img_preview img{
+            width: calc(90% - 2px);
+            height: calc(90% - 2px);
+            margin-top: 3%;
+            display: inline-block;
+            border: 1px solid black;
+        }
+        .file_ext_name_span{
+
+        }
+        .original_file_name{
+            width: 100%;
+            height: 48px;
+            padding-top: 12px;
+            text-align: center;
+            /*box-shadow: 0 -2px 2px #CCCCCC;*/
+            font-size: 15px;
+            font-family: "Microsoft YaHei";
+            font-size: 15px;
+            line-height: 18px;
+            color: grey;
+            text-justify: newspaper;
+            word-break: break-all;
+        }
+        .show_size{
+            width: 100%;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+            color: #9c9c9c;;
+        }
+        /* 删除文件 */
+        .file_delete{
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            background: white;
+            color: red;
+            font-size: 22px;
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            right: 0;
+            display: none;
+        }
+        .file_delete:hover{
+            background: red;
+            color: white;
+        }
+        .file_obj:hover .file_delete{
+            display: block;
+        }
+        /* 文件上传状态，文件下载按钮 */
+        .file_status,.file_download{
+            width: 48px;
+            height: 22px;
+            text-align: left;
+            line-height: 22px;
+            padding: 0 4px;
+            background: none;
+            font-size: 15px;
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+        }
+        .file_status_new{
+            color: white;
+            background: rgba(183, 5, 31, 0.5);
+            z-index: 888;
+        }
+        .file_status_saved{
+            color: white;
+            background: rgba(0, 176, 0, 0.5);
+            z-index: 888;
+        }
+        .file_status_out_of_date{
+            color: white;
+            background: rgba(183, 5, 31, 0.5);
+            z-index: 888;
+        }
+        .file_download_button{
+            color: white;
+            background: rgba(0, 164, 255, 1);
+            display: none;
+            cursor: pointer;
+            z-index: 999;
+        }
+        .file_obj[file_type='saved']:hover .file_download_button{
+            display: block;
+        }
+    </style>
+    <script>
+        // 待上传文件集合
+        var fileUnuploadList = new Array();
+        // 已上传文件集合
+        var uploadedFileList = ${uploadedFileList};
+        // 关联id
+        var mainId = "${mainId}";
+        // 所有文件信息
+        var allFileList = new Array();
+        // 配置信息
+        var config = ${config};
+        // 最小文件数量
+        var minFileCount        = config["minFileCount"];
+        // 最大文件数量
+        var maxFileCount        = config["maxFileCount"];
+        // 单文件最大容量（KB）
+        var maxSingleFileSize   = config["maxSingleFileSize"];
+        // 所有文件最大容量（KB）
+        var maxMultipleFileSize = config["maxMultipleFileSize"];
+        // 文件上传的文件夹
+        var uploadPath          = config["uploadPath"];
+        // 文件上传限制的类型
+        var exts                = config["exts"];
+        // 显示文件上传按钮
+        var showImport          = config["showImport"];
+        // 显示关闭窗口按钮
+        var showClose           = config["showClose"];
+        // 显示删除文件按钮
+        var showDelete          = config["showDelete"];
+        // 显示删除所有文件按钮
+        var showDeleteAll       = config["showDeleteAll"];
+        // 显示下载单个文件按钮
+        var showDownload        = config["showDownload"];
+        // 显示下载所有文件按钮
+        var showDownloadAll     = config["showDownloadAll"];
+        // 删除时同时删除文件
+        var deleteWithFile      = config["deleteWithFile"];
+        // 上传完毕后自动关闭窗口
+        var closeAfterUpload    = config["closeAfterUpload"];
+        // 关闭前回调js函数
+        var beforeCloseWindow    = config["beforeCloseWindow"];
+
+        // 可以预览的文件后缀名（大写）
+        var canVisiableExtArr = ["JPG", "PNG", "JPEG"];
+        //gis展示和事件总览过来需要这个参数
+        var gisAndEventOverviewType = '${type}';
+
+        function loadFileOrDown(){
+            var wordPath = '${wordPath}';
+            if(gisAndEventOverviewType=="true"&&uploadedFileList.length==0){
+                 layer.msg("附件未上传,已为您下载汇总的word!");
+                 if(wordPath!=""){
+                     window.open(wordPath);
+                 }else{
+                     layer.msg("汇总的word不存在，请上传");
+                 }
+
+            }
+        }
+
+
+
+        /**
+         * 上传
+         */
+        function addUpload() {
+            if($(".button_add").hasClass("common_file_upload_button_disabled")){
+                return false;
+            }
+            $("#upload_file_line").click();
+        }
+
+        /**
+         * 清空
+         */
+        function deleteAll() {
+            if($(".button_delete_all").hasClass("common_file_upload_button_disabled")){
+                return false;
+            }
+            var confirmIndex = layer.confirm("您确定要删除所有附件吗？", {
+                id: "confirm_window",
+                btn: ["确定", "取消"] //按钮
+            }, function () {
+                // 没有保存上传到服务器的文件
+                var hasSavedFile = $("#file_list .file_obj[file_type='saved']").length > 0;
+                if(hasSavedFile){
+                    // 有保存到服务器的文件，请求服务器
+                    // loading层
+                    var loadIndex = commonLayerLoading();
+                    $.ajax({
+                        url: "/common/commonFileUpload/deleteByMainId",
+                        type: "post",
+                        data:{
+                            mainId: mainId,
+                            deleteWithFile: deleteWithFile
+                        },
+                        dataType: "text",
+                        success: function(data){
+                            if(data == "true"){
+                                layer.msg("删除成功！");
+                                // 移除所有文件
+                                $(".file_obj").remove();
+                                document.getElementById("upload_file_line").value = "";
+                                fileUnuploadList = new Array();
+                                // 刷新文件个数
+                                showFileCount();
+                                // 刷新按钮状态
+                                menuControl();
+                                // 延时关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            }else{
+                                layer.msg("操作失败！");
+                                // 延时关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            }
+                        },
+                        error: function(){
+                            layer.msg("操作失败！");
+                            // 延时关闭loading
+                            commonLayerClose(loadIndex, 100);
+                        }
+                    });
+                }else{
+                    // 没有保存到服务器的文件，清空本地即可
+                    // loading层
+                    var loadIndex = commonLayerLoading();
+                    // 移除所有文件
+                    $(".file_obj").remove();
+                    document.getElementById("upload_file_line").value = "";
+                    fileUnuploadList = new Array();
+                    // 刷新文件个数
+                    showFileCount();
+                    // 刷新按钮状态
+                    menuControl();
+                    // 延时关闭loading
+                    commonLayerClose(loadIndex, 100);
+                    // 关闭弹窗
+                    commonLayerClose(confirmIndex);
+                }
+            });
+        }
+
+        /**
+         * 关闭
+         */
+        function closeUpload() {
+            // 关闭前判断是否有未上传的文件
+            var unUploadFileCount = $(".file_obj[file_type='new']").length;
+            if(unUploadFileCount > 0){
+                layer.confirm("有待上传的文件，您确定关闭吗？", {
+                    id: "confirm_window",
+                    btn: ["确定", "取消"] //按钮
+                }, function () {
+                    // 关闭
+                    innerClose();
+                });
+            }else{
+                // 关闭
+                innerClose();
+            }
+            // 内置关闭函数
+            function innerClose() {
+
+                // 关闭前，判断是否需要触发一次方法
+                // 是否阻止关闭
+                var stopClose = false;
+                if(beforeCloseWindow && typeof(window.parent[beforeCloseWindow] == "function")){
+                    var simpleFunctionName = beforeCloseWindow;
+                    if(simpleFunctionName.indexOf("(") > -1){
+                        simpleFunctionName = simpleFunctionName.substring(0, simpleFunctionName.indexOf("("));
+                    }
+                    if(typeof(window.parent[simpleFunctionName]) == "function"){
+                        // 调用
+                        var result = eval("window.parent." + beforeCloseWindow);
+                        if(typeof(result) == "boolean"){
+                            stopClose = !result;
+                        }
+                    }
+                }
+                if(!stopClose){
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                }
+            }
+        }
+
+        /**
+         * 绑定自动拼接显示
+         */
+        function setAutoShowFile() {
+            $("#upload_file_line").on("change", function () {
+                var fileList = document.getElementById("upload_file_line").files;
+                for(var i = 0; i < fileList.length; i++){
+                    var file = fileList[i];
+                    // 装入新文件集合并拼接显示
+                    appendNewFile(file);
+                    // 判断新文件是否还放得下
+                    if(i < (fileList.length - 1) && maxFileCount && $(".file_obj").length >= maxFileCount){
+                        layer.msg("文件数量不能超过" + maxFileCount + "个！");
+                        break;
+                    }
+                }
+                // 清空
+                document.getElementById("upload_file_line").value = "";
+                // 刷新文件个数
+                showFileCount();
+                // 刷新按钮状态
+                menuControl();
+            });
+        }
+
+        /**
+         * 显示文件个数
+         */
+        function showFileCount() {
+            $("#show_file_count").hide();
+            var fileCount = $(".file_obj").length;
+            var text = "文件：" + fileCount;
+            if(maxFileCount){
+                text += "/" + maxFileCount;
+            }
+            $("#show_file_count").text(text).fadeIn();
+            if(fileCount > 0){
+                $("#file_list").show();
+            }else{
+                $("#file_list").hide();
+            }
+        }
+
+        /**
+         * 按钮控制
+         */
+        function menuControl() {
+            if(maxFileCount && $(".file_obj").length >= maxFileCount){
+                // 不允许再增加文件了
+                $(".button_add").addClass("common_file_upload_button_disabled");
+            }else{
+                // 允许增加
+                $(".button_add").removeClass("common_file_upload_button_disabled");
+            }
+            if($(".file_obj").length){
+                // 允许清空
+                $(".button_delete_all").removeClass("common_file_upload_button_disabled");
+            }else{
+                // 不允许清空
+                $(".button_delete_all").addClass("common_file_upload_button_disabled");
+            }
+            if($("[file_type='new']").length){
+                // 有待上传的文件，允许上传
+                $(".button_upload_all").removeClass("common_file_upload_button_disabled");
+            }else{
+                // 没有待上传的文件，不允许上传
+                $(".button_upload_all").addClass("common_file_upload_button_disabled");
+            }
+            if($(".file_obj .file_status_saved").length){
+                // 有已上传的文件，允许下载文件
+                $(".button_download_all").removeClass("common_file_upload_button_disabled");
+            }else{
+                // 没有可以下载的文件，不允许下载
+                $(".button_download_all").addClass("common_file_upload_button_disabled");
+            }
+        }
+
+        /**
+         * 拼接新选中的文件
+         */
+        function appendNewFile(file){
+            if(!file){
+                return false;
+            }
+            // 文件名称
+            var name = file["name"];
+            // 文件大小
+            var size = file["size"];
+            var showSize = "0Kb";
+            var fileSize = "";
+            if(size){
+                fileSize = Math.ceil(size * 1.0 / 1024);
+                showSize = getShowSize(fileSize);
+            }
+            var simpleName = name;
+            // 文件扩展名（大写）
+            var fileExtName = "";
+            if(name && name.indexOf(".") > -1){
+                fileExtName = name.substring(name.lastIndexOf(".") + 1);
+                fileExtName = fileExtName.toUpperCase();
+            }
+            if(simpleName.length - fileExtName.length > 9){
+                simpleName = simpleName.substring(0, 9) + "... ." + fileExtName.toLowerCase();
+            }
+
+            // 判断文件名称是否重复
+            for(var i = 0; i < $(".file_obj").length; i++){
+                var currentName = $(".file_obj").eq(i).find(".original_file_name").attr("title");
+                if(name == currentName){
+                    // 重复，不拼接
+                    layer.msg("文件名称不能重复！");
+                    return false;
+                }
+            }
+
+            // 判断单文件大小
+            if(!isNaN(maxSingleFileSize) && !isNaN(fileSize)
+                && maxSingleFileSize * 1.0 > 0 && maxSingleFileSize * 1.0 < fileSize * 1.0){
+                // 超过，不拼接
+                layer.msg("文件大小不能超过" + getShowSize(maxSingleFileSize) + "！");
+                return false;
+            }
+
+            // 判断总文件大小
+            if(!isNaN(maxMultipleFileSize) && !isNaN(fileSize)
+                && maxMultipleFileSize * 1.0 > 0){
+                // 将已选择的文件大小全加起来（Kb）
+                var choosedFileSizeTotal = 0;
+                for(var i = 0; i < $(".file_obj").length; i++){
+                    var currentFileSize = $(".file_obj").eq(i).find("[file_size]").attr("file_size") * 1.0;
+                    choosedFileSizeTotal += currentFileSize;
+                }
+                if(maxMultipleFileSize * 1.0 < choosedFileSizeTotal + fileSize * 1.0){
+                    layer.msg("文件总大小不能超过" + getShowSize(maxMultipleFileSize) + "！");
+                    return false;
+                }
+            }
+
+            // 判断文件扩展名
+            if(exts){
+                var extsStr = exts.toLowerCase();
+                var extsArr = exts.split(",");
+                if(!fileExtName || extsArr.indexOf(fileExtName.toLowerCase()) == -1){
+                    layer.msg("文件仅支持：" + extsArr.join("、") + "格式！");
+                    return false;
+                }
+            }
+
+            // 拼接
+            var tempId = getCommonSequence("temp_id");
+            file["tempId"] = tempId;
+            var fileObjHTML = "<div temp_id='" + tempId + "' class='file_obj common_unable_select_font' file_type='new'>";
+            /* 不预览图片
+            if(canVisiableExtArr.indexOf(fileExtName) > -1){
+                // 是文件，实现预览图片，实例化FileReader API
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(e) {
+                    $("[temp_id='" + tempId + "']").prepend("<div class='file_img_preview'><img src='" + e.target.result + "'></div>");
+                };
+            }else{
+                fileObjHTML += "<div class='file_ext_name'>" + fileExtName + "</div>";
+            }
+            */
+            fileObjHTML += "<div class='file_ext_name'>" + fileExtName + "</div>";
+            fileObjHTML += "<div class='original_file_name' title='" + name + "'>" + simpleName + "</div>";
+            fileObjHTML += "<div class='show_size' file_size='" + fileSize + "'>（" + showSize + "）</div>";
+            if(showDelete){
+                fileObjHTML += "<div class='file_delete'>×</div>";
+            }
+            fileObjHTML += "<div class='file_status file_status_new'>未上传</div>";
+            if(showDownload){
+                fileObjHTML += "<div class='file_download file_download_button'>下　载</div>";
+            }
+            fileObjHTML += "</div>";
+            $("#file_list").append(fileObjHTML);
+
+            // 装入新文件集合
+            fileUnuploadList.push(file);
+        }
+
+        /**
+         * 上传至服务器
+         */
+        function uploadToServer(){
+            if($(".button_upload_all").hasClass("common_file_upload_button_disabled")){
+                return false;
+            }
+            debugger;
+            // 逐个文件上传
+            // loading层
+            var loadIndex = commonLayerLoading();
+            for(var i = 0; i < fileUnuploadList.length; i++){
+                // 文件位置（注意这里是let）
+                let filePosition = i;
+                let file = fileUnuploadList[i];
+                var formData = new FormData();
+                formData.append("newFile", file);
+                formData.append("mainId", mainId);
+                formData.append("uploadPath", uploadPath);
+                $.ajax({
+                    url: "/common/commonFileUpload/uploadSingleFile",
+                    type: "POST",
+                    data: formData,
+                    /**
+                     *必须false才会自动加上正确的Content-Type
+                     */
+                    contentType: false,
+                    /**
+                     * 必须false才会避开jQuery对 formdata 的默认处理
+                     * XMLHttpRequest会对 formdata 进行正确的处理
+                     */
+                    processData: false,
+                    success: function (data) {
+                        debugger;
+                        // 情况比较复杂，暂时不处理异常情况
+                        var fileId = data["fileId"];
+                        var fileName = file["name"];
+                        // 找到文件对象
+                        var fileObj = $(".original_file_name[title='" + fileName + "']").closest(".file_obj");
+                        // 附件文件id
+                        fileObj.attr("file_id", fileId);
+                        if(filePosition == fileUnuploadList.length - 1){
+                            // 最后一个文件上传完毕之后
+                            // 清空数组
+                            fileUnuploadList = new Array();
+                            // 变更状态
+                            var objList = $(".file_list .file_obj[file_type='new']");
+                            objList.attr("file_type", "saved");
+                            objList.find(".file_status").text("已上传");
+                            objList.find(".file_status").addClass("file_status_saved");
+                            objList.find(".file_status").removeClass("file_status_new");
+                            if(closeAfterUpload && window.parent.layer){
+                                // 关闭文件上传窗口
+                                window.parent.layer.msg("上传成功！");
+                                // 关闭窗口
+                                closeUpload();
+                            }else{
+                                // 刷新本页面
+                                layer.msg("上传成功！");
+                                // 刷新文件个数
+                                showFileCount();
+                                // 刷新按钮状态
+                                menuControl();
+                                // 延时关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            }
+                        }
+                    },
+                    error: function () {
+                        layer.msg("上传失败！");
+                    }
+                });
+            }
+        }
+
+        /**
+         * 加载已上传文件
+         */
+        function loadUploadedFileList() {
+            if(!uploadedFileList.length){
+                return;
+            }
+            for(var i = 0; i < uploadedFileList.length; i++){
+                var file = uploadedFileList[i];
+                // 文件名称
+                var name = file["originalFileName"];
+                var simpleName = name;
+                // 文件大小（已转成Kb）
+                var size = file["fileSize"];
+                var showSize = "0Kb";
+                var fileSize = "";
+                if(size){
+                    fileSize = size;
+                    showSize = getShowSize(fileSize);
+                }
+                // 文件扩展名（大写）
+                var fileExtName = "";
+                if(name && name.indexOf(".") > -1){
+                    fileExtName = name.substring(name.lastIndexOf(".") + 1);
+                    fileExtName = fileExtName.toUpperCase();
+                }
+                if(simpleName.length - fileExtName.length > 9){
+                    simpleName = simpleName.substring(0, 9) + "... ." + fileExtName.toLowerCase();
+                }
+                // 文件是否存在
+                var fileExist = file["fileExist"];
+                var tempId = getCommonSequence("temp_id");
+                file["tempId"] = tempId;
+                var fileObjHTML = "<div temp_id='" + tempId + "' file_id='" + file["id"] + "' class='file_obj common_unable_select_font' file_type='saved'>";
+                fileObjHTML += "<div class='file_ext_name'>" + fileExtName + "</div>";
+                fileObjHTML += "<div class='original_file_name' title='" + name + "'>" + simpleName + "</div>";
+                fileObjHTML += "<div class='show_size' file_size='" + fileSize + "'>（" + showSize + "）</div>";
+                if(showDelete){
+                    fileObjHTML += "<div class='file_delete'>×</div>";
+                }
+                if(fileExist){
+                    fileObjHTML += "<div class='file_status file_status_saved'>已上传</div>";
+                    if(showDownload){
+                        fileObjHTML += "<div class='file_download file_download_button'>下　载</div>";
+                    }
+                }else{
+                    fileObjHTML += "<div class='file_status file_status_out_of_date'>已失效</div>";
+                }
+                fileObjHTML += "</div>";
+                $("#file_list").append(fileObjHTML);
+            }
+        }
+
+        /**
+         * 绑定文件删除按钮
+         */
+        function fileDeleteListener(){
+            $("body").on("click", ".file_delete", function(){
+                var fileObj = $(this).closest(".file_obj");
+                var fileId = fileObj.attr("file_id");
+                var fileType = fileObj.attr("file_type");
+                var fileName = fileObj.find(".original_file_name").attr("title");
+                if(fileType == "new"){
+                    // 新文件，直接删
+                    fileObj.remove();
+                    // 从数组中移除
+                    for(var i = 0; i < fileUnuploadList.length; i++){
+                        var currentFileName = fileUnuploadList[i]["name"];
+                        if(currentFileName == fileName){
+                            // 移除
+                            fileUnuploadList.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    // 刷新文件个数
+                    showFileCount();
+                    // 刷新按钮状态
+                    menuControl();
+                }else{
+                    // 已上传的文件，确认后删除
+                    var confirmIndex = layer.confirm("您确定要删除已上传的附件吗？", {
+                        id: "confirm_window",
+                        btn: ["确定", "取消"] //按钮
+                    }, function () {
+                        // loading层
+                        var loadIndex = commonLayerLoading();
+                        $.ajax({
+                            url: "/common/commonFileUpload/deleteByMainId",
+                            type: "post",
+                            data:{
+                                mainId: mainId,
+                                fileId: fileId,
+                                deleteWithFile: deleteWithFile
+                            },
+                            dataType: "text",
+                            success: function(data){
+                                if(data == "true"){
+                                    layer.msg("删除成功！");
+                                    // 移除指定文件
+                                    fileObj.remove();
+                                    // 刷新文件个数
+                                    showFileCount();
+                                    // 刷新按钮状态
+                                    menuControl();
+                                    // 延时关闭loading
+                                    commonLayerClose(loadIndex, 100);
+                                }else{
+                                    layer.msg("操作失败！");
+                                    // 延时关闭loading
+                                    commonLayerClose(loadIndex, 100);
+                                }
+                            },
+                            error: function(){
+                                layer.msg("操作失败！");
+                                // 延时关闭loading
+                                commonLayerClose(loadIndex, 100);
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        /**
+         * 单文件下载监听
+         */
+        function singleFileDownloadListener() {
+            $("body").on("click", ".file_download_button", function(){
+                var fileObj = $(this).closest(".file_obj");
+                var fileId = fileObj.attr("file_id");
+                // 下载前判断文件是否存在，不存在的 _(:з」∠)_
+                window.location.href = "/common/commonFileUpload/downloadSingleFile?fileId=" + fileId;
+            });
+        }
+
+        /**
+         * 下载所有文件
+         */
+        function downloadAllFile(){
+            if($(".button_download_all").hasClass("common_file_upload_button_disabled")){
+                return false;
+            }
+            // 判断已上传的文件有多少个
+            var uploadFileCount = $(".file_obj .file_status_saved").length;
+            if(uploadFileCount == 0){
+                layer.msg("请先上传文件！");
+            }else if(uploadFileCount == 1){
+                // 一个文件，直接下载
+                var fileId = $(".file_obj .file_status_saved").closest(".file_obj").attr("file_id");
+                window.location.href = "/common/commonFileUpload/downloadSingleFile?fileId=" + fileId;
+            }else{
+                // 多个文件，先打包
+                // loading层
+                var downloadIndex = commonLayerLoading();
+                $.ajax({
+                    url: "/common/commonFileUpload/packageByMainId",
+                    type: "post",
+                    data:{
+                        mainId: mainId,
+                    },
+                    dataType: "json",
+                    success: function(data){
+                        var result = data["result"];
+                        var message = data["message"];
+                        var zipName = data["zipName"];
+                        layer.msg(message);
+                        if(result == "success"){
+                            // 开始下载
+                            window.location.href = "/common/commonFileUpload/downloadZipFile?zipName=" + zipName;
+                            // 延时关闭loading
+                            commonLayerClose(downloadIndex, 100);
+                        }else{
+                            // 延时关闭loading
+                            commonLayerClose(downloadIndex, 100);
+                        }
+                    },
+                    error: function(){
+                        layer.msg("操作失败！");
+                        // 延时关闭loading
+                        commonLayerClose(downloadIndex, 100);
+                    }
+                });
+            }
+        }
+
+        /**
+         * 容量单位转换
+         * @param size 数字，单位Kb
+         */
+        function getShowSize(size){
+            var show = "";
+            if(!size || isNaN(size)){
+                return show;
+            }
+            size = size * 1.0;
+            if(size >= Math.pow(1024, 2)){
+                show = (size / Math.pow(1024, 2)).toFixed(2);
+                show = show * 1.0 + "Gb";
+            }else if(size >= Math.pow(1024, 1)){
+                show = (size / Math.pow(1024, 1)).toFixed(2);
+                show = show * 1.0 + "Mb";
+            }else{
+                show = size + "Kb";
+            }
+            return show;
+        }
+
+        $(function () {
+            // 加载已上传文件
+            loadUploadedFileList();
+            // 设置文字行高
+            $(".file_list_background").css("line-height", $(".file_list_background").height() * 0.9 + "px");
+            // 设置按钮隐藏/显现
+            if(!showImport){
+                $(".button_add").hide();
+                $(".button_upload_all").hide();
+                $(".file_list_background").children().hide();
+            }else{
+                $(".file_list_background").attr("onclick", "addUpload()");
+                $(".file_list_background").children().fadeIn();
+            }
+            if(!showDeleteAll){
+                $(".button_delete_all").hide();
+            }
+            if(!showClose){
+                $(".button_close").hide();
+            }
+            if(!showDownloadAll){
+                $(".button_download_all").hide();
+            }
+            // 显示文件个数
+            showFileCount();
+            // 刷新按钮状态
+            menuControl();
+            // 绑定自动拼接显示
+            setAutoShowFile();
+            // 绑定文件删除按钮
+            fileDeleteListener();
+            // 单文件下载监听
+            singleFileDownloadListener();
+            //加载文件下载，gis和事件总览会用到
+            loadFileOrDown();
+        });
+    </script>
+</head>
+<body>
+    <input type="file" multiple="multiple" id="upload_file_line" name="upload_file_line" style="display: none;">
+    <div style="height: 40px; border-bottom: 1px solid #CCCCCC;box-shadow: 2px 0 4px grey; margin-bottom: 2px;">
+        <input type="button" class="common_file_upload_button button_add" value="添加文件" onclick="addUpload()">
+        <input type="button" class="common_file_upload_button button_upload_all" value="上传文件" onclick="uploadToServer()">
+        <input type="button" class="common_file_upload_button button_download_all" value="下载文件" onclick="downloadAllFile()">
+        <input type="button" class="common_file_upload_button button_delete_all" value="清空" onclick="deleteAll()">
+        <input type="button" class="common_file_upload_button button_close" value="关闭" onclick="closeUpload()">
+        <span id="show_file_count" class="show_file_count"></span>
+    </div>
+    <div class="file_list_window">
+        <div class="file_list_background un_selectable">
+            <img src="/static/img/common/fileUpload/icon_upload.png" alt="" style="width: 42px; height: 42px; opacity: 0.5; position: relative; top: 4px; display: none;">
+            <span style="display: none;">点击添加文件</span>
+        </div>
+        <div id="file_list" class="file_list"></div>
+    </div>
+</body>
+</html>
