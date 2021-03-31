@@ -164,7 +164,7 @@
 
     //导出
     function doExcel(){
-        window.open("${ctx}/machinery/doExcel");
+        window.open(MODULE_PATH+"/excel/doExcel");
     }
 
     //详情
@@ -172,7 +172,7 @@
         layer.open({
             title:"详情",
             type:2,
-            content:'${ctx}/machinery/doDetailsMachinery?factoryNumber='+factoryNumber+"&iotNumber="+iotNumber+"&machineryId="+machineryId,
+            content:MODULE_PATH+'/excel/doDetailsMachinery?factoryNumber='+factoryNumber+"&iotNumber="+iotNumber+"&machineryId="+machineryId,
             area: ['90%', '90%']
             ,btnAlign: 'c' //按钮居中
             ,shade: 0 //不显示遮罩

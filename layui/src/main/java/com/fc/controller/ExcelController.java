@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.fc.model.common.MachineryInfoOrigin;
 import com.fc.model.common.MachineryInfo;
 import com.fc.util.*;
+import com.fc.util.ExcelUtil;
 import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +18,13 @@ import org.springframework.web.multipart.MultipartRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -34,11 +37,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/excel")
 public class ExcelController {
 
+    Pattern pattern = Pattern.compile("^[1][3,4,5,7,8][0-9]{9}$"); // 验证手机号
+
     //查询页面,里面有导入和下载模板导出等功能
     @RequestMapping("/batchQuery")
     public String batchQuery() {
         return "common/batchQuery";
     }
+
+    //查询页面中有多个table拼接
+    @RequestMapping("/batchAllQuery")
+    public String batchAllQuery() {
+        return "common/batchAllQuery";
+    }
+
 
 
     //导入页面
@@ -68,9 +80,10 @@ public class ExcelController {
     @ResponseBody
     @RequestMapping("/getListByExcel")
     public void getListByExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        List<Map<String,Object>> datas = new ArrayList<>();
+        List<Map<String,Object>> agriMachineInfos = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> headerMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
         headerMap.put("机具名称","modelName");
         headerMap.put("出厂编号","factoryNumber");
         headerMap.put("物联网设备号","iotNumber");
@@ -99,6 +112,7 @@ public class ExcelController {
             //如果显示所有信息,则要默认匹配查询农机
             List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("list");
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            getCheckByList(dataMap,list);
 
             //循环取出出厂编号和物联网设备号
             for (Map<String, Object> objectMap : list) {
@@ -138,12 +152,13 @@ public class ExcelController {
                     objectMap.put("replaced",replaced);
                 }
             }
+            dataMap.put("list",list);
         } catch (Exception e) {
             e.printStackTrace();
         }
         //防止乱码
         response.setCharacterEncoding("utf-8");
-        response.getWriter().print(new Gson().toJson(map));
+        response.getWriter().print(new Gson().toJson(dataMap));
     }
 
     /**
@@ -231,5 +246,72 @@ public class ExcelController {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
+
+
+    /**
+     * 导入的校验方法
+     * @param hashMap
+     * @param list
+     */
+    public void getCheckByList(Map hashMap,List<Map<String, Object>> list){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat sdf1 = new SimpleDateFormat("d-MMM-yyyy");
+        hashMap.put("msg","success");
+
+        for (Map<String, Object> thisMap : list) {
+            //号牌校验
+            String certificateNum = GlobalFunc.toString(thisMap.get("certificateNum"));
+            if(org.apache.commons.lang.StringUtils.isBlank(certificateNum)){
+                hashMap.put("msg","第"+thisMap.get("rowNum")+"行,号牌不能为空!");
+                break;
+            }
+
+            //发动机号码
+            String engineNumber = GlobalFunc.toString(thisMap.get("engineNumber"));
+            if(org.apache.commons.lang.StringUtils.isBlank(engineNumber)){
+                hashMap.put("msg","第"+thisMap.get("rowNum")+"行,发动机号码不能为空!");
+                break;
+            }
+
+            //生产日期
+            String productionDate = GlobalFunc.toString(thisMap.get("productionDate"));
+            if(org.apache.commons.lang.StringUtils.isBlank(productionDate)){
+                hashMap.put("msg","第"+thisMap.get("rowNum")+"行,生产日期不能为空!");
+                break;
+            }
+            if(productionDate.indexOf("-")>-1){
+                Date d = new Date();
+                try {
+                    d = sdf1.parse(productionDate);
+                } catch (ParseException e) {
+                    hashMap.put("msg","第"+thisMap.get("rowNum")+"行,生产日期格式不正确!例如用2020/01/01");
+                    break;
+                }
+                productionDate = format.format(d);
+                thisMap.put("productionDate",productionDate);
+            }
+            else if((productionDate.indexOf("/")>-1&&isValidDate(formatter,productionDate))||productionDate.indexOf("-")>-1&&isValidDate(format,productionDate)){
+
+            }else {
+                hashMap.put("msg","第"+thisMap.get("rowNum")+"行,生产日期格式不正确!例如用2020-01-01");
+                break;
+            }
+        }
+    }
+
+    //校验日期
+    public static boolean isValidDate(SimpleDateFormat format,String str) {
+        boolean convertSuccess = true;
+        // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
+        try {
+            format.setLenient(false);
+            format.parse(str);
+        } catch (ParseException e) {
+            convertSuccess = false;
+        }
+        return convertSuccess;
+    }
+
 
 }

@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <title>上传图片</title>
+    <th:block th:include="bootstrap :: header('获取接口')"/>
+    <script th:src="@{/static/bootstrap/fileinput.min.css}"></script>
+    <script th:src="@{/static/bootstrap/fileinput.min.js}"></script>
+</head>
+
+
+<body>
+<div class="file-loading">
+    <input id="fileName" name="fileName" type="file" class="imgFile">
+</div>
+
+</body>
+<script type="text/javascript">
+    let MODULE_PATH = rootPath+"/ExcelController";
+    var fileNameArr = "";
+    $(function () {
+        givePhoneName(0);
+    });
+    var thisUrl;
+    function givePhoneName(url) {
+        var replaceUrlsList = new Array(url.length);
+        var initialList = new Array(url.length);
+        $("#fileName").fileinput({
+            language: 'zh', //设置语言
+            uploadAsync: true,  //默认异步上传
+            maxFileCount: 1,   //最大上传文件数量
+            maxFileSize : 500,
+            showBrowse: false,
+            browseOnZoneClick: true,
+            initialPreviewAsData: true,
+            allowedFileType: ['image'],
+            allowedFileExtensions: ['jpg', 'jpeg', 'png', 'gif'],
+            initialPreview: replaceUrlsList,
+            initialPreviewConfig: initialList
+        }).on("filebatchselected", function (e, files) {
+            var file = this.files[0];
+            var oFReader = new FileReader();
+            //fileNameArr =file.name;
+            oFReader.readAsDataURL(file);
+            oFReader.onload = function (oFREvent) {
+                cover = oFREvent.target.result;
+                fileNameArr = cover;
+                var preLoadingIndex = layer.load(2, { //icon支持传入0-2
+                    shade: [0.1, '#fff'], //0.5透明度的灰色背景
+                    content: '加载中',
+                    success: function (layero) {
+                        layero.find('.layui-layer-content').css({
+                            'paddingTop': '40px',
+                            'width': '70px',
+                            'textAlign': 'center',
+                            'backgroundPositionX': 'center'
+                        });
+
+                    }
+                });
+                $.ajax({
+                    url:MODULE_PATH+"/certificate/uploadPic",
+                    data:{
+                        djzsbh:"${djzsbh}",
+                        base64:cover
+                    },
+                    type:"post",
+                    dataType:"json",
+                    async: true,
+                    success:function(data){
+                        layer.close(preLoadingIndex);
+                        parent.updateRow(fileNameArr);
+                        layer.msg("上传成功!!", {icon: 1,time:2000},function () {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);//关闭当前页
+                        });
+                    },
+                    error:function(){
+                        layer.close(preLoadingIndex);
+                        layer.msg("上传失败!!", {icon: 2})
+                    }
+                })
+            }
+        });
+
+    }
+</script>
+</html>

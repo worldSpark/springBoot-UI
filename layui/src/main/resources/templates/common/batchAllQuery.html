@@ -1,0 +1,546 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <title>农机登记信息列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <th:block th:include="bootstrap :: header('获取接口')"/>
+    <script th:src="@{/static/bootstrap/fileinput.min.js}"></script>
+    <link th:href="@{/static/bootstrap/fileinput.min.css}" rel="stylesheet">
+    <style type="text/css">
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle!important;
+        }
+        .wrap{ width:100%; }
+
+        .solutions{width:100%;overflow: hidden}
+        .solutions li{background: #fff; width:263px;border:1px solid #e5e5e5;border-bottom: 5px solid #efefef; float:left; margin-right:20px; position:relative;}
+
+        .solutit{display: block;width:100%;}
+        .solutit p{line-height: 20px;font-size: 14px;text-align: center;}
+        li{
+            list-style: none;
+        }
+    </style>
+</head>
+
+
+<body>
+<div style="text-align: center;width: 95%;height: 100%;margin: 0 auto">
+    <h3>支持老系统号牌和农机信息的导入</h3>
+    <h6>提示:若只导入号牌,默认是入库的状态,需要及时的将号牌绑定,以免造成新老车辆绑定号牌的问题.<span style="color: red">注意:</span>导入农机成功后,会自动导入号牌且绑定成功,不用再去点击导入号牌.</h6>
+    <h6>操作:导入号牌可直接保存成功.导入农机请根据<span style="color: red">导入农机模版</span>excel进行导入.导入成功后都会显示在列表中.</h6>
+    <hr>
+    <div class='wrap'>
+        <div class='solutions' id="solutions">
+            <ul style="width: 100%;">
+                <li id="li1" style="width: 50%;height: 25%;">
+                    <div class="solutit">
+                        <p style="text-align: left;margin-left: 20px;" >
+                            <span style="font-size: 15px;">牌证固定编号：</span>
+                            <input type="text" id="certificateNum" class="form-control" style="display: inline-block;width: 184px;" placeholder="例如:赣10/">
+                            <span style="font-size: 15px;">导入数量：</span>
+                            <input type="text" id="applyNum" class="form-control" style="display: inline-block;width: 184px;"  onkeyup="value=value.replace(/[^\d{1,}\.\d{1,}|\d{1,}]/g,''),changeIndex()"  onblur="isint1(this)">
+
+                        </p>
+                        <p style="text-align: left;margin-left: 20px;">
+                            <span style="font-size: 15px;">　输入号牌段：</span>
+                            <input type="text" id="stateNum" class="form-control" style="display: inline-block;width: 184px;" onkeyup="changeIndex()" placeholder="牌证起始号">
+                            <span style="font-size: 15px;">　　　　　</span>
+                            <input type="text" id="endNum" class="form-control" style="display: inline-block;width: 184px;"   placeholder="牌证结束号">
+                        </p>
+                        <p style="text-align: left;margin-left: 20px;">
+                            <span style="font-size: 15px;">　　牌证类型：</span>
+                            <select type="text" id="certificateType" class="form-control" style="display: inline-block;width: 184px;" >
+                                <option value="">请选择类型</option>
+                                <c:forEach var="certificate" items="${rows}">
+                                    <option value="${certificate.label}">${certificate.label}</option>
+                                </c:forEach>
+                            </select>
+                            <span style="font-size: 15px;">所属地区：</span>
+                            <input type="text" id="district" class="form-control" style="display: inline-block;width: 184px;" placeholder="所属地区">
+                            <button type="button" class="btn btn-primary" id="certificateId"  onclick="importCertficate()" >生成号牌</button>
+                        </p>
+                    </div>
+                </li>
+                <li id="li2" style="height: 25%;width: 25%;">
+                    <div class="solutit">
+                        <p style="text-align: left;margin-left: 20px;">
+                        <form id="importFile" name="importFile" class="form-horizontal" method="post"
+                              enctype="multipart/form-data">
+                            <div class="box-body" style="width: 360px;margin-top: 30px;margin-left: 20px;">
+                                <input id="excelFile" name="excelFile" class="file-loading" type="file" multiple accept=".xls,.xlsx">
+                            </div>
+                        </form>
+                        </p>
+                        <p style="text-align: left;margin-left: 20px;">
+                            <button type="button" class="btn btn-primary" id="button3" onclick="uploadFile()" >下载导入农机模版</button>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div style="margin-top: 10px;">
+        <table id="table" style="white-space :nowrap;display: none;"></table>
+    </div>
+
+</div>
+
+</body>
+<script type="text/javascript">
+    let MODULE_PATH = rootPath+"/ExcelController";
+
+    var list = new Array();
+    var fileds = new Array();
+    var $table = $('#table');
+    var importValue = "";
+    //下载模版
+    function uploadFile(){
+        window.open(MODULE_PATH+"/certificate/downloadTemplate");
+    }
+
+    //校验是否为(0-500)的整数
+    function isint1(obj)
+    {
+        var result = obj.value;
+        if(result>700|result<0) {
+            layer.msg("申请数量为1-700以内!",{icon:2});
+            $(obj).val("");
+        };
+    }
+
+    function changeIndex() {
+        var stateNum = $("#stateNum").val();
+        var applyNum = $("#applyNum").val();
+        //若输入为空
+        if(stateNum == ''|| stateNum == null){
+            $("#endNum").val("");
+        }else{
+            var stateNum = $("#stateNum").val();
+            var p = /[a-z]/i;
+            //获取数字
+            var valueNum = stateNum.replace(/[^0-9]/ig,"");
+            //判断是否含有字母
+            if(p.test(stateNum)){
+                //获取字母
+                var valueLetter = stateNum.replace(/[^a-z]+/ig,"");
+                valueNum = Number(valueNum) +Number(applyNum)-1;
+                stateNum = insert_flg(valueNum+"",valueLetter,stateNum);
+            }else{
+                stateNum = Number(valueNum) +Number(applyNum)-1;
+                if((stateNum+'').length < valueNum.length){
+                    var count = valueNum.length - (stateNum+'').length;
+                    for(var i= 1 ; i<= count;i++){
+                        stateNum = "0"+(stateNum+'');
+                    }
+                    console.log("-------新的数字字串----"+stateNum);
+                }
+            }
+            $("#endNum").val(stateNum);
+        }
+    }
+
+    /**
+     * 牌证计算
+     * @param valueNum 牌证数字编号
+     * @param valueLetter 牌证字母编号
+     * @param stateNum 牌证字符串
+     */
+    function insert_flg(valueNum,valueLetter,stateNum){
+        var valueLetterArray = [];
+        //获取数字
+        var valueN= stateNum.replace(/[^0-9]/ig,"");
+        //判断字符长度,如果长度不够,用0补齐;因为影响数据准确性的就是字符前输入0了
+        if(valueNum.length < valueN.length){
+            var count = valueN.length - valueNum.length;
+            for(var i= 1 ; i<= count;i++){
+                valueNum = "0"+valueNum;
+            }
+            console.log("-------新的数字字串----"+valueNum);
+        }
+        var newValueNum = valueNum;
+        if(valueLetter.length > 1){
+            valueLetterArray =  valueLetter.split('');
+            for(var i= 0;i<valueLetterArray.length;i++){
+                var index = stateNum.indexOf(valueLetterArray[i]);//获取单个字母在字符串中的位置
+                console.log(i+"-------字符串位置----"+index);
+                //获取前一段
+                var preValue = newValueNum.substring(0,index);
+                console.log(i+"-------前一段字符------"+preValue);
+                //获取后一段
+                var nextValue = newValueNum.substring(index,newValueNum.length);
+                console.log(i+"-------后一段字符-----"+nextValue);
+                newValueNum = preValue+valueLetterArray[i]+nextValue;
+                console.log(i+"-------新的字符-----"+newValueNum);
+            }
+        }else{
+            var index = stateNum.indexOf(valueLetter);//获取单个字母在字符串中的位置
+            //获取前一段
+            var preValue = newValueNum.substring(0,index);
+            //获取后一段
+            var nextValue = newValueNum.substring(index,newValueNum.length);
+            newValueNum = preValue+valueLetter+nextValue;
+        }
+        return newValueNum;
+    }
+
+    //生成号牌
+    function importCertficate(){
+        //获取牌证申请编号
+        var certificateNum = $("#certificateNum").val();
+        var certificateType = $("#certificateType").val();
+        var applyNum = $("#applyNum").val();
+        if(certificateType == '' || certificateType == null){
+            return layer.msg("请选择号牌类型!!", {icon: 2})
+        }
+        if(certificateNum == '' || certificateNum == null){
+            return layer.msg("请填写牌证固定编号!!", {icon: 2})
+        }
+
+        if(applyNum == '' || applyNum == null){
+            return layer.msg("请填写导入数量!!", {icon: 2})
+        }else if(applyNum>700||applyNum<0){
+            return layer.msg("导入数量在1-700以内!!", {icon: 2})
+        }
+        var stateNum = $("#stateNum").val();
+        var endNum = $("#endNum").val();
+        if(stateNum == '' || stateNum == null){
+            return layer.msg("请填写牌证起始号!!", {icon: 2})
+        }else{
+            if(stateNum.length != 5 ){
+                return layer.msg("请填写正确的牌证起始号,固定为5位!!", {icon: 2})
+            }
+        }
+        certificateNum = certificateNum +','+stateNum+","+endNum;
+        var regionName = $("#district").val();
+        var applyNum = $("#applyNum").val();
+        var loadingIndex = layer.load(2, { //icon支持传入0-2
+            shade: [0.1, '#fff'], //0.5透明度的灰色背景
+            content: '加载中',
+            success: function (layero) {
+                layero.find('.layui-layer-content').css({
+                    'paddingTop': '40px',
+                    'width': '70px',
+                    'textAlign': 'center',
+                    'backgroundPositionX': 'center'
+                });
+
+            }
+        });
+        $.ajax({
+            url:MODULE_PATH+"/certificate/addCertificateInfo",
+            data:{
+                certificateNum:certificateNum,
+                certificateType:certificateType,
+                applyNum:applyNum,
+                sysFlag:1,
+                regionName:regionName
+            },
+            type:"post",
+            dataType:"json",
+            async: true,
+            success:function(data){
+                layer.close(loadingIndex);
+                debugger;
+                if (data == 100) {
+                    layer.msg("牌证生成成功!!", {icon: 1, time: 1000}, function () {
+                        importValue = "1";
+                        $("#certificateId").remove();
+                        $("#importFile").remove();
+                        getTableList();
+                    });
+                }else if(data == 102){
+                    return layer.msg("区域不存在!!", {icon: 2});
+                }
+                else if(data==101){
+                    return layer.msg("牌证已存在!!", {icon: 2});
+                }else if(data.msg=="success"){
+                    layer.msg("牌证生成成功!!", {icon: 1, time: 1000}, function () {
+                        importValue = "1";
+                        list = data.list;
+                        $("#certificateId").remove();
+                        $("#importFile").remove();
+                        getTableList();
+                    });
+                }else{
+                    return layer.msg("牌证生成失败!!", {icon: 2});
+                }
+            },
+            error:function(){
+                layer.close(loadingIndex);
+                layer.msg("牌证生成失败!!", {icon: 2})
+            }
+        })
+    }
+
+    initUpload("excelFile","/certificate/getListByExcel");
+    //上传附件,指定excel
+    function initUpload(ctrlName, uploadUrl) {
+        var control = $('#' + ctrlName);
+        control.fileinput({
+            language: 'zh', //设置语言
+            uploadUrl: uploadUrl, //上传的地址
+            uploadAsync: true, //默认异步上传
+            showCaption: true,//是否显示标题
+            showUpload: true, //是否显示上传按钮
+            browseClass: "btn btn-primary", //按钮样式
+            allowedFileExtensions: ["xls", "xlsx"], //接收的文件后缀
+            maxFileCount: 1,//最大上传文件数限制
+            previewFileIcon: '<i class="glyphicon glyphicon-file"></i>',
+            showPreview: false, //是否显示预览
+            previewFileIconSettings: {
+                'docx': '<i ass="fa fa-file-word-o text-primary"></i>',
+                'xlsx': '<i class="fa fa-file-excel-o text-success"></i>',
+                'xls': '<i class="fa fa-file-excel-o text-success"></i>',
+                'pptx': '<i class="fa fa-file-powerpoint-o text-danger"></i>',
+                'jpg': '<i class="fa fa-file-photo-o text-warning"></i>',
+                'pdf': '<i class="fa fa-file-archive-o text-muted"></i>',
+                'zip': '<i class="fa fa-file-archive-o text-muted"></i>',
+            },
+            uploadExtraData: function () {
+                var data = {
+                    excelType : "test",
+                    thisBox:$("#thisBox").prop("checked")
+                };
+                return data;
+            }
+        });
+    }
+    //上传的方法
+    $("#excelFile").on("fileuploaded", function (event, data, previewId, index) {
+        getThisFile(event, data, previewId, index);
+    });
+
+    function getThisFile(event, data, previewId, index){
+        list = data.response.list;
+        fileds = data.response.column;
+        layer.close(preLoadingIndex);
+        if(data.response.msg == "success")
+        {
+            layer.alert(data.files[index].name + "导入成功!");
+            //关闭
+            $(".close").click();
+            $("#excelFile").fileinput("clear");
+            $("#excelFile").fileinput("reset");
+            $('#excelFile').fileinput('refresh');
+            $('#excelFile').fileinput('enable');
+            getTableList();
+            $("#certificateId").remove();
+            $("#importFile").remove();
+        }
+        else{
+            layer.alert(data.files[index].name + "导入失败!"+data.response.msg);
+            //重置
+            $("#excelFile").fileinput("clear");
+            $("#excelFile").fileinput("reset");
+            $('#excelFile').fileinput('refresh');
+            $('#excelFile').fileinput('enable');
+        }
+    }
+
+
+    //添加集合
+    var certificateNums = [];
+    var agrimachineNums = [];
+    certificateNums = [
+        {
+            field: 'serial',
+            title: '序号',
+            formatter:function(value,row,index){
+                return index+1;
+            }
+        },{
+            field: 'certificateNum',
+            title: '牌证号码'
+        },{
+            field: 'certificateType',
+            title: '牌证类型'
+        }, {
+            field: 'regionName',
+            title: '所属地区'
+        }
+    ]
+    agrimachineNums = [
+        {
+            field: 'certificateNum',
+            title: '号牌号码'
+        },{
+            field: 'djzsbh',
+            title: '登记证书编号'
+        }, {
+            field: 'area',
+            title: '所属地区'
+        }, {
+            field: 'syr',
+            title: '所有人'
+        },{
+            field: 'company',
+            title: '企业生产名称'
+        },{
+            field: 'engineNumber',
+            title: '发动机号码'
+        }, {
+            field: 'lx',
+            title: '类型',
+            formatter:function(value,row,index){
+                switch(value){
+                    case 'G1':
+                        return "轮式拖拉机";
+                        break;
+                    case 'K1':
+                        return "手扶拖拉机";
+                        break;
+                    case 'L':
+                        return "履带拖拉机";
+                        break;
+                    case 'G2':
+                        return "轮式拖拉机运输机组";
+                        break;
+                    case 'K2':
+                        return "手扶拖拉机运输机组";
+                        break;
+                    case 'R':
+                        return "轮式联合收割机";
+                        break;
+                    case 'S':
+                        return "履带式联合收割机";
+                        break;
+                    case 'T':
+                        return "变型拖拉机";
+                    default:
+                        return value;
+                }
+            }
+        }, {
+            field: 'pic',
+            title: '上传农机图片',
+            formatter:function (value,row,index) {
+                if(!value){
+                    return "<span style='color: red;' >请上传农机图片</span>";
+                }else{
+                    return '<img  src='+value+' width="100" height="100" class="img-rounded" >';
+                }
+            }
+        }, {
+            field: 'operating',
+            title: '操作',
+            formatter:function(value,row,index){
+                return "<button type=\"button\" class=\"btn btn-primary btn_prim\" onclick=doImport('"+JSON.stringify(row)+"','"+index+"') >上传</button>"
+                    +"<button type=\"button\" class=\"btn btn-primary\" onclick=\"showAgriDetail('"+row.djzsbh+"')\" style=\"margin-left: 10px;\">详情</button>";
+            }
+        }
+    ]
+    var columns = certificateNums.concat(agrimachineNums);
+
+    function getTableList(){
+        $table.bootstrapTable({
+            method: 'post',                          //请求方式（*）
+            singleSelect: false,
+            striped: true,                          //是否显示行间隔色
+            cache: false,                           //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,                       //是否显示分页（*）
+            sortOrder: "asc",                       //排序方式
+            contentType: "application/x-www-form-urlencoded",
+            sidePagination: "client",               //分页方式：client客户端分页，server服务端分页（*）
+            pageNumber: 1,                          //初始化加载第一页，默认第一页
+            pageSize: 10,
+            pageList: [10, 25, 50, 100],
+            search: true,                          //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: false,                     //是否显示所有的列
+            showRefresh: false,                     //是否显示刷新按钮
+            minimumCountColumns: 2,                 //最少允许的列数
+            clickToSelect: true,                    //是否启用点击选中行
+            uniqueId: "ID",                         //每一行的唯一标识，一般为主键列
+            showToggle: false,                      //是否显示详细视图和列表视图的切换按钮
+            cardView: false,                        //是否显示详细视图
+            detailView: false,                      //是否显示父子表
+            data:list,
+            columns: columns
+        });
+        //为1代表导入号牌,否则导入农机
+        if(importValue=="1"){
+            for(var i=0;i<agrimachineNums.length;i++){
+                $table.bootstrapTable('hideColumn', agrimachineNums[i].field);
+            }
+        }else{
+            for(var i=0;i<certificateNums.length;i++){
+                $table.bootstrapTable('hideColumn', certificateNums[i].field);
+            }
+        }
+        if(list.length>0){
+            $("#table").show();
+            $table.bootstrapTable("load", list);
+        }else{
+            $("#table").hide();
+        }
+    }
+
+    var preLoadingIndex;
+
+    //上传前的方法
+    $("#excelFile").on("filepreupload", function (event, data, previewId, index) {
+        preLoadingIndex = layer.load(2, { //icon支持传入0-2
+            shade: [0.1, '#fff'], //0.5透明度的灰色背景
+            content: '加载中',
+            success: function (layero) {
+                layero.find('.layui-layer-content').css({
+                    'paddingTop': '40px',
+                    'width': '70px',
+                    'textAlign': 'center',
+                    'backgroundPositionX': 'center'
+                });
+
+            }
+        });
+    });
+
+    //上传图片
+    var thisRow ;
+    var thisIndex ;
+    function doImport(thisObj,index){
+        thisRow = JSON.parse(thisObj);
+        console.log(thisRow);
+        thisIndex = index;
+        layer.open({
+            title:"上传图片",
+            type:2,
+            content:MODULE_PATH+'/certificate/singleFileUpload?djzsbh='+thisRow.djzsbh,
+            area: ['60%', '60%']
+            ,btnAlign: 'c' //按钮居中
+            ,shade: 0 //不显示遮罩
+        });
+    }
+
+    function updateRow(fileName){
+        thisRow.pic = fileName;
+        $table.bootstrapTable('updateRow', {
+            index: thisIndex,
+            row: thisRow
+        });
+    }
+
+    //农机详情
+    function showAgriDetail(djzsbh){
+        layer.open({
+            type: 2,
+            title:'拖拉机和联合收割机数据资料',
+            shadeClose: true,
+            shade:0.4,
+            maxmin: true, //开启最大化最小化按钮
+            area: ['1100px', '600px'],
+            content: MODULE_PATH+'/agriMachineInfo/jumpAgriMachineInfoDetail?djzsbh='+djzsbh,
+            end: function () {
+
+            }
+        });
+    }
+</script>
+</html>

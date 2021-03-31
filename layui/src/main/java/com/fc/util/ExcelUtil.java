@@ -1,5 +1,6 @@
 package com.fc.util;
 
+import com.fc.util.ArrayUtil;
 import com.fc.util.GlobalFunc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.*;

@@ -1,6 +1,5 @@
-package com.fc.util;
+package com.common.util;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -93,7 +92,7 @@ public class HttpRequest {
             conn.setConnectTimeout(30000);
             conn.setReadTimeout(30000);
 
-            //PrintWriter out = new PrintWriter(new OutputStreamWriter(connection.getOutputStream(),"utf-8"));
+            //PrintWriter out = new PrintWriter(new OutputStreamWriter(connection.getOutputStream(), "utf-8"));
             // 发送POST请求必须设置如下两行
             conn.setDoOutput(true);
             conn.setDoInput(true);
@@ -431,11 +430,6 @@ public class HttpRequest {
         {
             try
             {
-                /*bufferedReader.close();
-                inputStreamReader.close();
-                inputStreamReader.close();
-                inputStream.close();
-                outputStream.close();*/
                 IOUtils.closeQuietly(bufferedReader);
                 IOUtils.closeQuietly(inputStreamReader);
                 IOUtils.closeQuietly(inputStream);
@@ -530,12 +524,6 @@ public class HttpRequest {
         {
             try
             {
-               /* bufferedReader.close();
-                inputStreamReader.close();
-                inputStreamReader.close();
-                inputStream.close();
-                oos.close();*/
-                //这里引用的是mybatis-plus-core的jar
                 IOUtils.closeQuietly(bufferedReader);
                 IOUtils.closeQuietly(inputStreamReader);
                 IOUtils.closeQuietly(inputStream);
@@ -559,90 +547,4 @@ public class HttpRequest {
         System.out.println(httpRequest("http://njzydc.jx.gnb360.cn/updateUserByFactoryNumber?factoryNumber=ZRLJF313184", "text/plain;charset=UTF-8", "POST",
                 100000, 100000, ""));
     }
-
-    public static Map<String,Object>  token() throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        map.put("appkey", "efzwk0jb9kkm62yx");
-        map.put("appsecret", "v5wumx2qieczvtcucxlnk01lw4q6x3fy");
-        String jsonString = JSON.toJSONString(map);
-        return getToken(jsonString);
-    }
-
-    /**
-     * 获取token
-     *
-     * @param parameters
-     * @return
-     */
-    private static Map<String,Object> getToken(String parameters) {
-        String result = HttpRequest.sendPost("http://token.dtwl360.com:28028/token/gainToken?appkey=efzwk0jb9kkm62yx&appsecret=v5wumx2qieczvtcucxlnk01lw4q6x3fy", "");
-        Map<String,Object> map = new HashMap<>();
-        // 解析发送后的结果
-        net.sf.json.JSONObject object = net.sf.json.JSONObject.fromObject(result);
-        // 获取code值
-        String code = object.getString("code");
-        String token = "";
-        if("0".equals(code)){
-            token = GlobalFunc.toString(object.getString("result"));
-        }
-        String message = object.getString("message");
-        map.put("code",code);
-        map.put("token",token);
-        map.put("message",message);
-        return map;
-    }
-
-    public static String sendPostByHeaders(String url, String param,String token) {
-        PrintWriter out = null;
-        BufferedReader in = null;
-        String result = "";
-        try {
-            URL realUrl = new URL(url);
-            // 打开和URL之间的连接
-            URLConnection conn = realUrl.openConnection();
-
-            // 设置通用的请求属性
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", token);
-            conn.setRequestProperty("Accept-Charset", "UTF-8");
-
-            //PrintWriter out = new PrintWriter(new OutputStreamWriter(connection.getOutputStream(),"utf-8"));
-            // 发送POST请求必须设置如下两行
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            // 获取URLConnection对象对应的输出流
-            //out = new PrintWriter(conn.getOutputStream());
-            out = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(), "utf-8"));
-            // 发送请求参数
-            out.print(param);
-            // flush输出流的缓冲
-            out.flush();
-            // 定义BufferedReader输入流来读取URL的响应
-            //in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
-            String line;
-            while ((line = in.readLine()) != null) {
-                result += line;
-            }
-        } catch (Exception e) {
-            System.out.println("发送 POST 请求出现异常！"+e);
-            e.printStackTrace();
-        }
-        //使用finally块来关闭输出流、输入流
-        finally{
-            try{
-                if(out!=null){
-                    out.close();
-                }
-                if(in!=null){
-                    in.close();
-                }
-            }
-            catch(IOException ex){
-                ex.printStackTrace();
-            }
-        }
-        return result;
-    }
-
 }

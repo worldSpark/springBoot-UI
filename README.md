@@ -12,7 +12,7 @@
 3.html模块中引用模板引擎freemarker和thymeleaf,引用地图的使用,echarts和ANV系列等图表.
 
 4.html模块中将使用security的方法进行封装,沿用redis中间件,调用influxdb和opentsdb等时序库,引用消息队列
-kafka和rabbitmq.其中用kafka进行存储信息,以吞吐量大的车票或者车辆轨迹等等进行操作,rabbitmq用来实现
+kafka和rabbitmq.其中用kafka进行存储信息,以吞吐量大的车辆或者车辆轨迹等等进行操作,rabbitmq用来实现
 直播的聊天室.
 
 5.html模块中将实现直播功能,利用srs和rtc进行推流,rtc为直播主要信息,srs进行连麦等等.聊天室使用springboot

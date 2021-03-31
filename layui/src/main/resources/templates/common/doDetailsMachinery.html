@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title></title>
+</head>
+<th:block th:include="bootstrap :: header('获取接口')"/>
+
+<style>
+
+</style>
+
+<body>
+<div style="text-align: center;width: 95%;height: 100%;margin: 0 auto">
+    <h5>提示:</h5>
+    <h6>详情里面都以厂家同步过来为主,若没有则未同步或者物联网系统已停止,可以联系相关人员.</h6>
+    <div style="position: absolute;right: 20px;top: 20px;" id="datianArea"></div>
+    <div style="margin-top: 30px;">
+        <table id="subtable" style="white-space :nowrap;"></table>
+    </div>
+</div>
+
+</body>
+<script>
+    let MODULE_PATH = rootPath+"/ExcelController";
+    var $table = $('#subtable');
+    var datianArea = 0;
+    $(function(){
+        $table.bootstrapTable({
+            method: 'post',                          //请求方式（*）
+            singleSelect: true,
+            striped: true,                          //是否显示行间隔色
+            cache: false,                           //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,                       //是否显示分页（*）
+            sortOrder: "asc",                       //排序方式
+            contentType: "application/x-www-form-urlencoded",
+            sidePagination: "client",               //分页方式：client客户端分页，server服务端分页（*）
+            pageNumber: 1,                          //初始化加载第一页，默认第一页
+            pageSize: 1000,
+            search: true,                          //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: false,                     //是否显示所有的列
+            showRefresh: false,                     //是否显示刷新按钮
+            minimumCountColumns: 2,                 //最少允许的列数
+            clickToSelect: true,                    //是否启用点击选中行
+            uniqueId: "ID",                         //每一行的唯一标识，一般为主键列
+            showToggle: false,                      //是否显示详细视图和列表视图的切换按钮
+            cardView: false,                        //是否显示详细视图
+            detailView: false,                      //是否显示父子表
+            data: '${list}'!=''?$.parseJSON('${list}'):new Array() ,
+            columns: [{
+                checkbox: true
+            },{
+                field: 'factoryNumber',
+                title: '出厂编号'
+            }, {
+                field: 'iotNumber',
+                title: '物联网设备号'
+            },{
+                field: 'time',
+                title: '时间'
+            }, {
+                field: 'workArea',
+                title: '作业面积',
+                formatter:function(value,row,index){
+                    if(value==null||value==""){
+                        return "";
+                    }else {
+                        return Number(value).toFixed(2)+"亩";
+                    }
+                }
+            },{
+                field: 'flag',
+                title: '是否是大田面积',
+                formatter:function(value,row,index){
+                    if(value=="1"){
+                        datianArea += Number(row.workArea);
+                        return "是";
+                    }else {
+                        return "否";
+                    }
+                }
+            },{
+                field: 'track',
+                title: '是否有轨迹',
+                formatter:function(value,row,index){
+                    if(value=="0"){
+                        return "有";
+                    }else {
+                        return "无";
+                    }
+                }
+            }]
+        });
+
+        $("#datianArea").html("同步大田的总面积为:<span style='color: #8bafea'>"+datianArea+"</span>亩");
+
+    })
+
+</script>
+
+</html>
